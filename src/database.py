@@ -343,8 +343,17 @@ def verify_otp_code(
     return True, "OTP verified successfully."
 
 
+def is_gmail_relay_configured() -> bool:
+    load_local_env()
+    relay_url = os.environ.get("GMAIL_RELAY_URL", "").strip()
+    relay_token = os.environ.get("GMAIL_RELAY_TOKEN", "").strip()
+    return relay_url.startswith("https://") and len(relay_token) >= 8
+
+
 def is_gmail_smtp_configured() -> bool:
     load_local_env()
+    if is_gmail_relay_configured():
+        return True
     gmail_user = os.environ.get("GMAIL_USER", "").strip()
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
     placeholders = {"", "your-gmail@gmail.com", "your-16-char-app-password", "change-me"}
@@ -352,57 +361,89 @@ def is_gmail_smtp_configured() -> bool:
 
 
 def send_otp_email(email: str, code: str, ttl_minutes: int = OTP_TTL_MINUTES) -> tuple[bool, str, str]:
-    """Send a real Valorant-themed 6-digit OTP HTML email via Gmail SMTP (smtp.gmail.com:587 STARTTLS)."""
+    """Send a real Valorant-themed 6-digit OTP HTML email via HTTPS Gmail Relay (port 443) or Gmail SMTP (port 587)."""
     load_local_env()
     clean_email = email.strip().lower()
     if not is_gmail_smtp_configured():
         return False, "smtp_unconfigured", SMTP_UNAVAILABLE_MESSAGE
 
-    gmail_user = os.environ["GMAIL_USER"].strip()
-    gmail_password = os.environ["GMAIL_APP_PASSWORD"].strip().replace(" ", "")
-
-    msg = EmailMessage()
-    msg["Subject"] = f"VALOSENT AI // Tactical Verification Code: {code}"
-    msg["From"] = f"VALOSENT AI Protocol <{gmail_user}>"
-    msg["To"] = clean_email
-    msg.set_content(
+    subject = f"VALOSENT AI // Tactical Verification Code: {code}"
+    plain_body = (
         f"VALOSENT AI // TACTICAL ACCESS VERIFICATION\n\n"
         f"Your 6-digit verification code is: {code}\n"
         f"This single-use code expires in {ttl_minutes} minutes (maximum {OTP_MAX_ATTEMPTS} attempts).\n\n"
         f"If you did not request this sign-in, you can safely ignore this email.\n"
     )
-    msg.add_alternative(
-        f"""\
-        <div style="background:#0F1923;color:#ECE8E1;padding:32px 28px;font-family:'Segoe UI',Arial,sans-serif;border-top:4px solid #FF4655;max-width:520px;margin:0 auto;">
-          <div style="font-size:11px;letter-spacing:3px;color:#FF4655;font-weight:700;text-transform:uppercase;">// VALOSENT PROTOCOL · IDENTITY VERIFICATION</div>
-          <h2 style="margin:12px 0 8px;color:#ECE8E1;letter-spacing:1.5px;font-size:22px;text-transform:uppercase;">YOUR 6-DIGIT VERIFICATION CODE</h2>
-          <p style="color:#9EAAB7;font-size:14px;line-height:1.6;">Enter this one-time tactical verification code to sign in to your VALOSENT AI account:</p>
-          <div style="margin:22px 0;padding:18px 26px;background:#162330;border:1px solid rgba(255,70,85,0.55);border-left:4px solid #FF4655;display:inline-block;font-size:34px;letter-spacing:10px;font-weight:800;color:#FF4655;">
-            {code}
-          </div>
-          <p style="color:#9EAAB7;font-size:12px;margin-top:8px;">Expires in <strong style="color:#ECE8E1;">{ttl_minutes} minutes</strong> · Single-use · Max {OTP_MAX_ATTEMPTS} attempts.</p>
-          <hr style="border:none;border-top:1px solid rgba(236,232,225,0.12);margin:20px 0 14px;" />
-          <p style="color:#6C7C8C;font-size:11px;margin:0;">If you did not request this login code, ignore this message — your account remains secure.</p>
-        </div>
-        """,
-        subtype="html",
+    html_body = (
+        f'<div style="background:#0F1923;color:#ECE8E1;padding:32px 28px;font-family:\'Segoe UI\',Arial,sans-serif;border-top:4px solid #FF4655;max-width:520px;margin:0 auto;">'
+        f'<div style="font-size:11px;letter-spacing:3px;color:#FF4655;font-weight:700;text-transform:uppercase;">// VALOSENT PROTOCOL &middot; IDENTITY VERIFICATION</div>'
+        f'<h2 style="margin:12px 0 8px;color:#ECE8E1;letter-spacing:1.5px;font-size:22px;text-transform:uppercase;">YOUR 6-DIGIT VERIFICATION CODE</h2>'
+        f'<p style="color:#9EAAB7;font-size:14px;line-height:1.6;">Enter this one-time tactical verification code to sign in to your VALOSENT AI account:</p>'
+        f'<div style="margin:22px 0;padding:18px 26px;background:#162330;border:1px solid rgba(255,70,85,0.55);border-left:4px solid #FF4655;display:inline-block;font-size:34px;letter-spacing:10px;font-weight:800;color:#FF4655;">{code}</div>'
+        f'<p style="color:#9EAAB7;font-size:12px;margin-top:8px;">Expires in <strong style="color:#ECE8E1;">{ttl_minutes} minutes</strong> &middot; Single-use &middot; Max {OTP_MAX_ATTEMPTS} attempts.</p>'
+        f'<hr style="border:none;border-top:1px solid rgba(236,232,225,0.12);margin:20px 0 14px;" />'
+        f'<p style="color:#6C7C8C;font-size:11px;margin:0;">If you did not request this login code, ignore this message &mdash; your account remains secure.</p>'
+        f'</div>'
     )
 
-    try:
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            server.login(gmail_user, gmail_password)
-            server.send_message(msg)
-        return (
-            True,
-            "smtp",
-            f"A 6-digit verification code has been sent to {clean_email}. Check your inbox (expires in {ttl_minutes} min).",
-        )
-    except Exception:
-        LOGGER.exception("Gmail SMTP delivery failed for %s", clean_email)
-        return False, "smtp_error", SMTP_UNAVAILABLE_MESSAGE
+    # 1. Prefer HTTPS Gmail Relay (port 443) when configured — works seamlessly on Render Free tier where SMTP ports are blocked.
+    if is_gmail_relay_configured():
+        try:
+            import requests
+
+            resp = requests.post(
+                os.environ["GMAIL_RELAY_URL"].strip(),
+                json={
+                    "token": os.environ["GMAIL_RELAY_TOKEN"].strip(),
+                    "to": clean_email,
+                    "subject": subject,
+                    "body": plain_body,
+                    "htmlBody": html_body,
+                },
+                allow_redirects=True,
+                timeout=20,
+            )
+            if resp.status_code == 200:
+                try:
+                    payload = resp.json()
+                except ValueError:
+                    payload = {}
+                if payload.get("ok") is True:
+                    return (
+                        True,
+                        "https_relay",
+                        f"A 6-digit verification code has been sent to {clean_email}. Check your inbox (expires in {ttl_minutes} min).",
+                    )
+            LOGGER.warning("Gmail HTTPS relay returned status=%s body=%s", resp.status_code, resp.text[:240])
+        except Exception:
+            LOGGER.exception("Gmail HTTPS relay request failed for %s", clean_email)
+
+    # 2. Direct Gmail SMTP (smtp.gmail.com:587 STARTTLS) when credentials are set.
+    gmail_user = os.environ.get("GMAIL_USER", "").strip()
+    gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip().replace(" ", "")
+    if gmail_user and gmail_password:
+        msg = EmailMessage()
+        msg["Subject"] = subject
+        msg["From"] = f"VALOSENT AI Protocol <{gmail_user}>"
+        msg["To"] = clean_email
+        msg.set_content(plain_body)
+        msg.add_alternative(html_body, subtype="html")
+        try:
+            with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(gmail_user, gmail_password)
+                server.send_message(msg)
+            return (
+                True,
+                "smtp",
+                f"A 6-digit verification code has been sent to {clean_email}. Check your inbox (expires in {ttl_minutes} min).",
+            )
+        except Exception:
+            LOGGER.exception("Gmail SMTP delivery failed for %s", clean_email)
+
+    return False, "smtp_error", SMTP_UNAVAILABLE_MESSAGE
 
 
 def _load_fast_svm():

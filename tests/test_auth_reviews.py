@@ -18,6 +18,8 @@ class AuthProfileAndReviewsTests(unittest.TestCase):
                 "VALOSENT_STORAGE": "sqlite",
                 "GMAIL_USER": "",
                 "GMAIL_APP_PASSWORD": "",
+                "GMAIL_RELAY_URL": "",
+                "GMAIL_RELAY_TOKEN": "",
                 "GOOGLE_CLIENT_ID": "",
                 "GOOGLE_CLIENT_SECRET": "",
             },
