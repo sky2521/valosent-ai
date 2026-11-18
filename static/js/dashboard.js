@@ -2716,6 +2716,14 @@ async function initializeReviews() {
         ver.textContent = '✓';
         meta.append(ver);
       }
+      if (rev.author_main_role) {
+        const roleTag = document.createElement('span');
+        roleTag.className = 'role-pill';
+        roleTag.textContent = rev.author_favorite_agent
+          ? `${rev.author_favorite_agent} · ${rev.author_main_role}`
+          : rev.author_main_role;
+        meta.append(roleTag);
+      }
       if (rev.author_role === 'admin') {
         const badge = document.createElement('span');
         badge.className = 'admin-tag';
@@ -2954,6 +2962,256 @@ async function initializeReviews() {
   await loadFeed();
 }
 
+async function initializeProfile() {
+  const [profileData, catalogData] = await Promise.all([
+    getJson('/api/profile'),
+    getJson('/api/agent-catalog'),
+  ]);
+
+  const user = profileData.user || {};
+  const stats = profileData.stats || {};
+  const allAgents = catalogData.agents || [];
+
+  const usernameInput = document.getElementById('profile-username-input');
+  const bioInput = document.getElementById('profile-bio-input');
+  const roleSelector = document.getElementById('profile-role-selector');
+  const avatarGrid = document.getElementById('profile-avatar-grid');
+  const avatarRoleTabs = document.getElementById('profile-avatar-role-tabs');
+  const avatarSearch = document.getElementById('profile-avatar-search');
+  const googleWrap = document.getElementById('profile-google-avatar-wrap');
+  const googleBtn = document.getElementById('profile-google-avatar-btn');
+  const googleImg = document.getElementById('profile-google-avatar-img');
+  const googleCheck = document.getElementById('google-avatar-check');
+  const feedbackEl = document.getElementById('profile-feedback');
+  const saveStatusPill = document.getElementById('profile-save-status');
+  const saveBtn = document.getElementById('profile-save-btn');
+  const form = document.getElementById('profile-edit-form');
+
+  let selectedRole = user.main_role || '';
+  let selectedAgent = user.favorite_agent || '';
+  let avatarMode = (user.avatar_url && user.google_avatar_url && user.avatar_url === user.google_avatar_url)
+    ? 'google'
+    : 'agent';
+  let filterRole = 'All';
+  let searchQuery = '';
+
+  usernameInput.value = user.username || '';
+  bioInput.value = user.bio || '';
+  document.getElementById('profile-stat-email').textContent = user.email || '';
+  document.getElementById('profile-stat-reviews').textContent = formatNumber(stats.total_reviews || 0);
+  document.getElementById('profile-stat-rating').textContent = stats.average_rating ? `${formatMetric(stats.average_rating, 2)} ★` : '--';
+
+  if (user.google_avatar_url && googleWrap && googleImg) {
+    googleWrap.hidden = false;
+    googleImg.src = user.google_avatar_url;
+  }
+
+  const paintRoleSelector = () => {
+    roleSelector.querySelectorAll('button[data-role]').forEach((btn) => {
+      btn.classList.toggle('selected', btn.dataset.role === selectedRole);
+    });
+  };
+
+  const paintPreview = () => {
+    const previewUser = document.getElementById('profile-preview-username');
+    const previewRole = document.getElementById('profile-preview-role');
+    const previewFav = document.getElementById('profile-preview-fav-agent');
+    const previewBio = document.getElementById('profile-preview-bio');
+    const previewAvatar = document.getElementById('profile-preview-avatar');
+    const previewInitials = document.getElementById('profile-preview-initials');
+    const previewRoleIcon = document.getElementById('profile-preview-role-icon');
+    const heroPortrait = document.getElementById('profile-hero-portrait');
+    const heroCard = document.getElementById('profile-hero-card');
+
+    const uname = (usernameInput.value || user.username || 'Agent').trim();
+    previewUser.textContent = `@${uname}`;
+    previewRole.textContent = (selectedRole || 'UNASSIGNED ROLE').toUpperCase();
+    previewFav.textContent = selectedAgent ? `· MAIN: ${selectedAgent.toUpperCase()}` : '';
+    previewBio.textContent = (bioInput.value || '').trim() || 'Add a short tactical bio to showcase your playstyle.';
+
+    if (selectedRole) {
+      const rAsset = getRoleAsset(selectedRole);
+      if (rAsset && previewRoleIcon) {
+        previewRoleIcon.hidden = false;
+        previewRoleIcon.src = rAsset.icon || rAsset.fallback_icon;
+      }
+    } else if (previewRoleIcon) {
+      previewRoleIcon.hidden = true;
+    }
+
+    if (avatarMode === 'google' && user.google_avatar_url) {
+      previewAvatar.hidden = false;
+      previewAvatar.src = user.google_avatar_url;
+      previewInitials.hidden = true;
+    } else if (selectedAgent) {
+      const asset = getAgentAsset(selectedAgent);
+      previewAvatar.hidden = false;
+      previewAvatar.dataset.fallbackApplied = '';
+      previewAvatar.src = asset.icon || asset.fallback_icon;
+      previewAvatar.onerror = () => {
+        if (previewAvatar.dataset.fallbackApplied) return;
+        previewAvatar.dataset.fallbackApplied = '1';
+        previewAvatar.src = asset.fallback_icon;
+      };
+      previewInitials.hidden = true;
+    } else if (user.avatar_url) {
+      previewAvatar.hidden = false;
+      previewAvatar.src = user.avatar_url;
+      previewInitials.hidden = true;
+    } else {
+      previewAvatar.hidden = true;
+      previewInitials.hidden = false;
+      previewInitials.textContent = uname.slice(0, 2).toUpperCase();
+    }
+
+    if (selectedAgent && heroPortrait) {
+      const asset = getAgentAsset(selectedAgent);
+      heroPortrait.hidden = false;
+      heroPortrait.dataset.fallbackApplied = '';
+      heroPortrait.src = asset.portrait || asset.fallback_portrait;
+      heroPortrait.onerror = () => {
+        if (heroPortrait.dataset.fallbackApplied) return;
+        heroPortrait.dataset.fallbackApplied = '1';
+        heroPortrait.src = asset.fallback_portrait;
+      };
+      if (heroCard && asset.accent) {
+        heroCard.style.setProperty('--agent-accent', `${asset.accent}55`);
+      }
+    } else if (heroPortrait) {
+      heroPortrait.hidden = true;
+    }
+
+    if (googleBtn && googleCheck) {
+      const isGoogleActive = avatarMode === 'google' && Boolean(user.google_avatar_url);
+      googleBtn.classList.toggle('selected', isGoogleActive);
+      googleCheck.hidden = !isGoogleActive;
+    }
+  };
+
+  const renderAvatarGrid = () => {
+    avatarGrid.replaceChildren();
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = allAgents.filter((item) => {
+      const roleOk = filterRole === 'All' || item.role === filterRole;
+      const textOk = !q || item.agent.toLowerCase().includes(q) || String(item.role || '').toLowerCase().includes(q);
+      return roleOk && textOk;
+    });
+    filtered.forEach((item) => {
+      const isSelected = avatarMode === 'agent' && selectedAgent === item.agent;
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      const roleCls = `role-${String(item.role || '').toLowerCase()}`;
+      tile.className = `agent-tile ${roleCls}${isSelected ? ' selected' : ''}`;
+      tile.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      const av = createAgentAvatarElement(item.agent, 'agent-avatar-sm');
+      const info = document.createElement('div');
+      info.className = 'agent-tile-info';
+      info.innerHTML = `<span class="agent-tile-head"><span class="role-dot"></span><strong>${item.agent}</strong>${isSelected ? '<span class="tile-check">✓</span>' : ''}</span><small>${item.role}</small>`;
+      tile.append(av, info);
+      tile.addEventListener('click', () => {
+        avatarMode = 'agent';
+        selectedAgent = item.agent;
+        if (!selectedRole && item.role) {
+          selectedRole = item.role;
+          paintRoleSelector();
+        }
+        paintPreview();
+        renderAvatarGrid();
+      });
+      avatarGrid.append(tile);
+    });
+  };
+
+  if (googleBtn) {
+    googleBtn.addEventListener('click', () => {
+      avatarMode = 'google';
+      paintPreview();
+      renderAvatarGrid();
+    });
+  }
+
+  roleSelector.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-role]');
+    if (!btn) return;
+    selectedRole = btn.dataset.role;
+    paintRoleSelector();
+    paintPreview();
+  });
+
+  avatarRoleTabs.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.role-tab');
+    if (!btn) return;
+    filterRole = btn.dataset.role;
+    avatarRoleTabs.querySelectorAll('.role-tab').forEach((b) => b.classList.toggle('active', b === btn));
+    renderAvatarGrid();
+  });
+
+  avatarSearch.addEventListener('input', () => {
+    searchQuery = avatarSearch.value;
+    renderAvatarGrid();
+  });
+  usernameInput.addEventListener('input', paintPreview);
+  bioInput.addEventListener('input', paintPreview);
+
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'SAVING PROFILE...';
+    feedbackEl.hidden = true;
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          username: usernameInput.value.trim(),
+          main_role: selectedRole,
+          favorite_agent: selectedAgent,
+          avatar_mode: avatarMode,
+          bio: bioInput.value.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not save profile.');
+      const updated = data.user || {};
+      feedbackEl.hidden = false;
+      feedbackEl.className = 'otp-feedback success';
+      feedbackEl.textContent = 'Profile saved! Your VALORANT callsign and avatar are now synced across the platform.';
+      if (saveStatusPill) saveStatusPill.hidden = false;
+
+      // Sync top navbar username & avatar live without requiring page reload
+      const topUserEl = document.getElementById('topbar-username-text');
+      if (topUserEl && updated.username) topUserEl.textContent = `@${updated.username}`;
+      const badgeEl = document.getElementById('topbar-user-badge');
+      if (badgeEl && updated.avatar_url) {
+        let imgEl = document.getElementById('topbar-avatar-img');
+        const dotEl = document.getElementById('topbar-avatar-dot');
+        if (!imgEl) {
+          imgEl = document.createElement('img');
+          imgEl.id = 'topbar-avatar-img';
+          imgEl.className = 'user-avatar-mini';
+          imgEl.referrerPolicy = 'no-referrer';
+          if (dotEl) dotEl.replaceWith(imgEl);
+          else badgeEl.prepend(imgEl);
+        }
+        imgEl.src = updated.avatar_url;
+        imgEl.alt = updated.username || 'Operator';
+      }
+      paintPreview();
+    } catch (err) {
+      feedbackEl.hidden = false;
+      feedbackEl.className = 'otp-feedback error';
+      feedbackEl.textContent = err.message;
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'SAVE AGENT PROFILE';
+    }
+  });
+
+  paintRoleSelector();
+  paintPreview();
+  renderAvatarGrid();
+}
+
 async function initializePage() {
   try {
     await loadValorantAssets();
@@ -2973,6 +3231,10 @@ async function initializePage() {
     if (page === 'reviews') {
       setMapBackdrop('Corrode');
       await initializeReviews();
+    }
+    if (page === 'profile') {
+      setMapBackdrop('Summit');
+      await initializeProfile();
     }
     if (page === 'about') {
       setMapBackdrop('Summit');

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=2026-v6" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=2026-v9" />
   </head>
   <body class="auth-body">
     <div class="hud-backdrop-layer auth-bg-art" style="background-image: url('https://media.valorant-api.com/maps/756da597-416b-c0f2-f47b-afbdf28670bc/splash.png'), url('/static/assets/fallbacks/map_summit_splash.svg'); opacity: 0.34;"></div>
@@ -32,10 +32,10 @@
         </div>
 
         <div class="auth-heading">
-          <p class="kicker">// {{ 'AGENT ENLISTMENT' if mode == 'register' else 'OPERATOR VERIFICATION' }} · SQLITE PERSISTENT</p>
+          <p class="kicker">// {{ 'AGENT ENLISTMENT' if mode == 'register' else 'OPERATOR VERIFICATION' }} · SECURE ACCESS</p>
           <h1>{{ 'Create your VALOSENT profile' if mode == 'register' else 'Access VALOSENT AI' }}</h1>
           <p class="panel-note">
-            Sign in seamlessly with Google OAuth, a 6-digit Gmail OTP verification code, or your operator credentials to post &amp; manage persistent reviews.
+            Sign in with Google OAuth, a 6-digit Gmail OTP verification code, or your operator credentials to customize your Valorant Agent profile and post reviews.
           </p>
         </div>
 
@@ -46,7 +46,7 @@
         <div class="auth-demo-hint" role="status">{{ info_message }}</div>
         {% endif %}
 
-        <!-- Google OAuth Button -->
+        <!-- Real Google OAuth 2.0 Button -->
         <a
           href="{{ url_for('login_google', next=next_url) if next_url else url_for('login_google') }}"
           class="google-oauth-btn"
@@ -61,14 +61,11 @@
             </svg>
           </span>
           <span>CONTINUE WITH GOOGLE</span>
-          {% if not google_oauth_configured %}
-          <em class="oauth-pill">SETUP IN .ENV</em>
-          {% endif %}
         </a>
 
         <div class="auth-divider"><span>OR USE GMAIL 6-DIGIT OTP</span></div>
 
-        <!-- Gmail 6-Digit OTP Flow -->
+        <!-- Production Gmail 6-Digit OTP Verification -->
         <section class="otp-box" id="gmail-otp-section" aria-label="Gmail OTP login">
           <div id="otp-feedback" class="otp-feedback" hidden></div>
           <div class="otp-send-row">
@@ -88,11 +85,7 @@
               <button type="button" class="primary-button" id="otp-verify-btn">VERIFY &amp; LOGIN</button>
             </div>
             <p class="panel-note otp-helper-note">
-              {% if gmail_smtp_configured %}
-              Check your Gmail inbox (and Spam folder) for your 6-digit VALOSENT verification code.
-              {% else %}
-              <strong>Dev Fallback Mode:</strong> <code>GMAIL_USER</code> is not configured in <code>.env</code> yet — copy the 6-digit OTP printed in your Flask terminal console.
-              {% endif %}
+              Enter the 6-digit verification code sent to your Gmail inbox (check Spam if not visible). Single-use · expires in 5 minutes · max 5 attempts.
             </p>
           </div>
         </section>
@@ -104,7 +97,7 @@
           <input type="hidden" name="next" value="{{ next_url }}" />
           <label class="field">
             OPERATOR CALLSIGN (USERNAME)
-            <input type="text" name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" autocomplete="username" placeholder="e.g. radiant_veto" value="{{ form_values.username }}" />
+            <input type="text" name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_#.\-]+" autocomplete="username" placeholder="e.g. Agent_SK#IND" value="{{ form_values.username }}" />
           </label>
           <label class="field">
             EMAIL ADDRESS
@@ -197,23 +190,18 @@
             });
             const data = await res.json();
             if (!res.ok) {
-              showFeedback(data.error || "Could not send OTP.", "error");
+              verifyStep.hidden = true;
+              showFeedback(data.error || "Email OTP service is temporarily unavailable. Please configure SMTP credentials or use Continue with Google.", "error");
               return;
             }
             verifyStep.hidden = false;
-            if (data.delivery === "console_dev" && data.dev_otp) {
-              feedback.hidden = false;
-              feedback.className = "otp-feedback info";
-              feedback.innerHTML = `<strong>Local Dev OTP:</strong> <code style="font-size:1.15em;letter-spacing:3px;color:#fff;background:rgba(255,70,85,0.28);padding:2px 8px;">${data.dev_otp}</code> (add <code>GMAIL_USER</code> &amp; <code>GMAIL_APP_PASSWORD</code> in <code>.env</code> to send real emails)`;
-              codeInput.value = data.dev_otp;
-            } else {
-              showFeedback(data.message || "OTP sent! Enter your 6-digit code below.", data.delivery === "console_dev" ? "info" : "success");
-              codeInput.value = "";
-            }
+            showFeedback(data.message || "A 6-digit verification code has been sent to your Gmail inbox.", "success");
             startCountdown(data.expires_in_seconds || 300);
+            codeInput.value = "";
             codeInput.focus();
           } catch (err) {
-            showFeedback("Network error while requesting OTP.", "error");
+            verifyStep.hidden = true;
+            showFeedback("Network error while requesting OTP. Please try again.", "error");
           } finally {
             sendBtn.disabled = false;
             sendBtn.textContent = "RESEND OTP";
@@ -241,7 +229,7 @@
               showFeedback(data.error || "OTP verification failed.", "error");
               return;
             }
-            showFeedback("Verified! Launching VALOSENT tactical session...", "success");
+            showFeedback("Verified! Launching your VALOSENT profile...", "success");
             window.location.href = data.redirect || "/reviews";
           } catch (err) {
             showFeedback("Network error while verifying OTP.", "error");

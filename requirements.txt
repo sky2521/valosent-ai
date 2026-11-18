@@ -1,15 +1,15 @@
+# Production requirements for VALOSENT AI (Flask + SQLAlchemy + Authlib + ML Analytics)
 Flask>=3.0.0,<4.0.0
+gunicorn>=22.0.0,<24.0.0
 Flask-SQLAlchemy>=3.1.0,<4.0.0
 Flask-Login>=0.6.3,<1.0.0
 Authlib>=1.3.0,<2.0.0
 requests>=2.31.0,<3.0.0
-gunicorn>=22.0.0,<24.0.0
-numpy>=1.26.0,<3.0.0
-pandas>=2.0.0,<4.0.0
+python-dotenv>=1.0.0,<2.0.0
+psycopg2-binary>=2.9.9,<3.0.0
+Werkzeug>=3.0.0,<4.0.0
 scikit-learn>=1.4.0,<2.0.0
-tensorflow>=2.16.0,<3.0.0
-torch>=2.2.0,<3.0.0
-transformers>=4.40.0,<5.0.0
-accelerate>=0.30.0,<2.0.0
+pandas>=2.0.0,<4.0.0
+numpy>=1.26.0,<3.0.0
 joblib>=1.4.0
 pyarrow>=14.0.0

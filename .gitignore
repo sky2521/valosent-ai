@@ -1,4 +1,3 @@
-
 # Temporary browser tests and logs
 _browser_test_downloads/
 *_smoke.png
@@ -10,7 +9,7 @@ install.log
 # Model training checkpoints
 models/distilbert_checkpoints/
 
-# Python caches and environments
+# Python caches and virtual environments
 __pycache__/
 *.py[cod]
 venv/
@@ -18,10 +17,12 @@ venv/
 env/
 .ipynb_checkpoints/
 
-# SQLite temporary journal files
+# Local databases & SQLite journal files
+*.db
 *.db-journal
 *.db-wal
 *.db-shm
+valosent.db
 
 # Environment secrets
 .env
@@ -29,4 +30,3 @@ env/
 # Large local-only artifacts (>50 MB, excluded for clean GitHub/Render deploys)
 models/distilbert/model.safetensors
 data/raw/matches/valorant_pro_matches.csv
-valosent.db

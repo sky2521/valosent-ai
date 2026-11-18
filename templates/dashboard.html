@@ -8,9 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=2026-v8" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=2026-v9" />
     <script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}?v=4.4.8" defer></script>
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2026-v8" defer></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2026-v9" defer></script>
   </head>
   <body data-page="{{ active_page }}" data-selected-map="{{ selected_map|default('') }}" data-selected-agent="{{ selected_agent|default('') }}" data-authenticated="{{ 'true' if current_user.is_authenticated else 'false' }}" data-mine-only="{{ 'true' if mine_only|default(false) else 'false' }}">
     <!-- Dynamic Map & Agent Crossfade Backdrop Layers -->
@@ -40,6 +40,9 @@
           <a href="/models" class="{% if active_page == 'models' %}active{% endif %}"><span class="nav-index">07</span>Model lab</a>
           <a href="/about" class="{% if active_page == 'about' %}active{% endif %}"><span class="nav-index">08</span>Methodology</a>
           <a href="/reviews" class="{% if active_page == 'reviews' %}active{% endif %}"><span class="nav-index">09</span>Community Reviews</a>
+          {% if current_user.is_authenticated %}
+          <a href="/profile" class="{% if active_page == 'profile' %}active{% endif %}"><span class="nav-index">10</span>Agent Profile</a>
+          {% endif %}
         </nav>
         <div class="sidebar-footer">
           <span class="status-dot"></span>
@@ -57,16 +60,16 @@
           <div class="topbar-actions">
             <a class="sentiment-shortcut" href="/sentiment">ANALYZE A REVIEW <span aria-hidden="true">↗</span></a>
             {% if current_user.is_authenticated %}
-            <span class="user-badge" title="Signed in as {{ current_user.username }}">
+            <a class="user-badge user-badge-link" id="topbar-user-badge" href="/profile" title="Customize your VALOSENT Agent Profile">
               {% if current_user.avatar_url %}
-              <img class="user-avatar-mini" src="{{ current_user.avatar_url }}" alt="{{ current_user.username }}" referrerpolicy="no-referrer" />
+              <img class="user-avatar-mini" id="topbar-avatar-img" src="{{ current_user.avatar_url }}" alt="{{ current_user.username }}" referrerpolicy="no-referrer" />
               {% else %}
-              <span class="user-dot"></span>
+              <span class="user-dot" id="topbar-avatar-dot"></span>
               {% endif %}
-              @{{ current_user.username }}
+              <span id="topbar-username-text">@{{ current_user.username }}</span>
               {% if current_user.is_verified %}<em class="verified-tag" title="Verified account">✓</em>{% endif %}
               {% if current_user.role == 'admin' %}<em class="admin-tag">ADMIN</em>{% endif %}
-            </span>
+            </a>
             <a class="topbar-link" href="/reviews?mine=1">MY REVIEWS</a>
             <a class="topbar-auth-btn logout" href="/logout">LOGOUT</a>
             {% else %}
@@ -495,6 +498,110 @@
               {% endif %}
             </div>
             <div id="reviews-feed" class="reviews-feed"></div>
+          </section>
+
+          {% elif active_page == 'profile' %}
+          <section class="page-heading">
+            <div>
+              <p class="kicker">// {{ 'NEW OPERATOR ONBOARDING' if setup_mode|default(false) else 'OPERATOR IDENTITY & LOADOUT' }} · SQL PERSISTENT</p>
+              <h1>{{ 'Set up your Agent Profile' if setup_mode|default(false) else 'Agent Profile & Avatar' }}</h1>
+              <p class="lede">Choose your VALORANT display callsign, main role, tactical bio, and official Agent portrait — synced live across your navbar and every review you publish.</p>
+            </div>
+            <div class="button-row">
+              <a class="quiet-button" href="/reviews">COMMUNITY REVIEWS →</a>
+              <a class="quiet-button" href="/dashboard">DASHBOARD →</a>
+            </div>
+          </section>
+
+          <section class="agent-profile profile-hero-card" id="profile-hero-card">
+            <img id="profile-hero-portrait" class="agent-hero-portrait" src="" alt="" aria-hidden="true" hidden />
+            <div class="agent-hero-content">
+              <div class="agent-id">
+                <div class="agent-avatar-frame profile-avatar-frame">
+                  <img id="profile-preview-avatar" class="agent-avatar-lg" src="" alt="Operator avatar" referrerpolicy="no-referrer" hidden />
+                  <span id="profile-preview-initials" class="role-mark">OP</span>
+                </div>
+                <div>
+                  <p class="kicker agent-role-line">
+                    <img id="profile-preview-role-icon" class="role-icon-mini" src="" alt="" hidden />
+                    <span id="profile-preview-role">SELECT MAIN ROLE</span>
+                    <span id="profile-preview-fav-agent" style="color:#ece8e1;"></span>
+                  </p>
+                  <h2 id="profile-preview-username">@{{ current_user.username }}</h2>
+                  <p class="panel-note" id="profile-preview-bio" style="margin-top:6px;max-width:560px;">Add a short tactical bio to showcase your playstyle.</p>
+                </div>
+              </div>
+              <div class="agent-facts">
+                <div><span>ACCOUNT EMAIL</span><strong id="profile-stat-email" style="font-size:17px;">{{ current_user.email }}</strong></div>
+                <div><span>VERIFICATION</span><strong id="profile-stat-verified" style="color:#4cd4a9;">VERIFIED ✓</strong></div>
+                <div><span>POSTED REVIEWS</span><strong id="profile-stat-reviews">0</strong></div>
+                <div><span>AVG RATING GIVEN</span><strong id="profile-stat-rating">--</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel profile-editor-panel">
+            <div class="panel-heading">
+              <div><p class="kicker">IDENTITY SETTINGS</p><h2>Customize callsign &amp; VALORANT avatar</h2></div>
+              <span class="role-pill" id="profile-save-status" hidden>SAVED ✓</span>
+            </div>
+            <div id="profile-feedback" class="otp-feedback" hidden></div>
+
+            <form id="profile-edit-form" class="profile-form">
+              <div class="profile-form-grid">
+                <label class="field">
+                  DISPLAY USERNAME (CALLSIGN)
+                  <input type="text" id="profile-username-input" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_#.\-]+" placeholder="e.g. Agent_SK#IND" value="{{ current_user.username }}" />
+                </label>
+                <div class="field">
+                  <span>MAIN ROLE</span>
+                  <div class="segmented" id="profile-role-selector">
+                    <button type="button" data-role="Duelist">Duelist</button>
+                    <button type="button" data-role="Initiator">Initiator</button>
+                    <button type="button" data-role="Controller">Controller</button>
+                    <button type="button" data-role="Sentinel">Sentinel</button>
+                  </div>
+                </div>
+              </div>
+
+              <label class="field">
+                TACTICAL BIO (MAX 280 CHARACTERS)
+                <textarea id="profile-bio-input" rows="2" maxlength="280" placeholder="e.g. Sentinel main anchoring Corrode &amp; Summit. VCT meta tracker."></textarea>
+              </label>
+
+              <div class="profile-avatar-section">
+                <div class="picker-toolbar">
+                  <div>
+                    <p class="kicker" style="margin-bottom:4px;">SELECT AVATAR · 30 OFFICIAL VALORANT AGENTS</p>
+                    <div class="role-filter-tabs" id="profile-avatar-role-tabs" role="tablist">
+                      <button type="button" class="role-tab active" data-role="All">All (30)</button>
+                      <button type="button" class="role-tab" data-role="Duelist">Duelist</button>
+                      <button type="button" class="role-tab" data-role="Controller">Controller</button>
+                      <button type="button" class="role-tab" data-role="Initiator">Initiator</button>
+                      <button type="button" class="role-tab" data-role="Sentinel">Sentinel</button>
+                    </div>
+                  </div>
+                  <input type="search" id="profile-avatar-search" class="picker-search" placeholder="Search agent portrait..." aria-label="Search agent avatar" />
+                </div>
+
+                <div id="profile-google-avatar-wrap" class="google-avatar-option-wrap" hidden>
+                  <button type="button" class="agent-tile google-avatar-tile" id="profile-google-avatar-btn">
+                    <img id="profile-google-avatar-img" class="agent-avatar-sm" src="" alt="Google profile photo" referrerpolicy="no-referrer" />
+                    <div class="agent-tile-info">
+                      <span class="agent-tile-head"><strong>Google Profile Picture</strong><span class="tile-check" id="google-avatar-check" hidden>✓</span></span>
+                      <small>Use your linked Google account photo</small>
+                    </div>
+                  </button>
+                </div>
+
+                <div class="agent-picker-grid profile-avatar-grid" id="profile-avatar-grid" aria-label="Select Valorant Agent Avatar"></div>
+              </div>
+
+              <div class="button-row">
+                <button type="submit" class="primary-button" id="profile-save-btn">SAVE AGENT PROFILE</button>
+                <a class="quiet-button" href="/reviews">VIEW MY REVIEWS →</a>
+              </div>
+            </form>
           </section>
 
           {% else %}

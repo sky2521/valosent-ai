@@ -15,6 +15,7 @@ from flask import Flask, flash, jsonify, redirect, render_template, request, ses
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from sqlalchemy import func
 from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from src.database import (
     OTPCode,
@@ -28,6 +29,7 @@ from src.database import (
     is_gmail_smtp_configured,
     load_local_env,
     record_analyzed_review,
+    resolve_database_uri,
     send_otp_email,
     verify_otp_code,
 )
@@ -84,17 +86,17 @@ MODELS_DIR = BASE_DIR / "models"
 load_local_env()
 
 app = Flask(__name__)
+# Trust Render/reverse-proxy X-Forwarded-* headers so OAuth callback URLs use exact HTTPS host in production.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 # Limit incoming request size before Flask reads JSON or CSV payloads into memory.
 app.config["MAX_CONTENT_LENGTH"] = 2_000_000
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "valosent-ai-secure-session-key-2026")
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL",
-    f"sqlite:///{(BASE_DIR / 'valosent.db').as_posix()}",
-)
+app.config["SQLALCHEMY_DATABASE_URI"] = resolve_database_uri()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
 
 init_db(app)
 
@@ -202,8 +204,9 @@ def handle_unauthorized():
 
 LOGGER = logging.getLogger(__name__)
 MAX_REVIEW_LENGTH = 5000
-USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_]{3,32}$")
+USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_#.\-]{3,32}$")
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+VALID_MAIN_ROLES = ("Duelist", "Initiator", "Controller", "Sentinel")
 
 
 def _is_safe_redirect_url(target: str | None) -> bool:
@@ -437,15 +440,15 @@ def login_page():
 @app.route("/login/google")
 def login_google():
     if current_user.is_authenticated:
-        return redirect(url_for("reviews_page"))
+        return redirect(url_for("profile_page"))
     client = _get_google_oauth_client()
     if client is None:
         return render_template(
             "auth.html",
             mode="login",
             error=(
-                "Google OAuth is not configured yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your .env file "
-                "(Authorized Redirect URI: http://127.0.0.1:5000/login/google/callback) and restart Flask — or sign in instantly with Gmail OTP below!"
+                "Google OAuth is not configured on this server yet. "
+                "Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in environment variables."
             ),
             info_message=None,
             form_values={"identifier": ""},
@@ -454,15 +457,15 @@ def login_google():
     next_url = request.args.get("next", "")
     if _is_safe_redirect_url(next_url):
         session["oauth_next"] = next_url
-    redirect_uri = url_for("google_auth_callback", _external=True)
+    redirect_uri = url_for("google_callback", _external=True)
     return client.authorize_redirect(redirect_uri)
 
 
-@app.route("/login/google/callback")
-def google_auth_callback():
+@app.route("/login/google/callback", endpoint="google_callback")
+def google_callback():
     client = _get_google_oauth_client()
     if client is None:
-        flash("Google OAuth is not configured in .env.", "error")
+        flash("Google OAuth is not configured on this server.", "error")
         return redirect(url_for("login_page"))
     try:
         token = client.authorize_access_token()
@@ -474,7 +477,7 @@ def google_auth_callback():
         return render_template(
             "auth.html",
             mode="login",
-            error=f"Google Sign-In failed ({exc}). Please try again or use Gmail OTP.",
+            error=f"Google Sign-In failed ({exc}). Please try again.",
             info_message=None,
             form_values={"identifier": ""},
             next_url="",
@@ -494,7 +497,7 @@ def google_auth_callback():
             next_url="",
         )
 
-    user = get_or_create_oauth_or_otp_user(
+    user, is_new = get_or_create_oauth_or_otp_user(
         email=email,
         username_hint=full_name,
         google_id=google_id,
@@ -502,6 +505,8 @@ def google_auth_callback():
     )
     login_user(user, remember=True)
     next_url = session.pop("oauth_next", None)
+    if is_new:
+        return redirect(url_for("profile_setup_page"))
     return redirect(next_url if _is_safe_redirect_url(next_url) else url_for("reviews_page"))
 
 
@@ -514,22 +519,20 @@ def api_auth_otp_send():
     if not EMAIL_PATTERN.match(email):
         return jsonify({"error": "Please enter a valid Gmail or email address."}), 400
 
-    code = create_otp_code(email, ttl_minutes=5)
+    code, otp_record = create_otp_code(email, ttl_minutes=5)
     ok, delivery, message = send_otp_email(email, code, ttl_minutes=5)
     if not ok:
-        return jsonify({"error": message, "delivery": delivery}), 502
+        otp_record.used = True
+        db.session.commit()
+        return jsonify({"error": message, "delivery": delivery}), 503
 
-    is_local_dev = request.remote_addr in {"127.0.0.1", "::1"} or request.host.startswith(("127.0.0.1", "localhost"))
-    response_body = {
+    return jsonify({
         "status": "sent",
         "email": email,
-        "delivery": delivery,
+        "delivery": "smtp",
         "message": message,
         "expires_in_seconds": 300,
-    }
-    if delivery == "console_dev" and is_local_dev:
-        response_body["dev_otp"] = code
-    return jsonify(response_body), 200
+    }), 200
 
 
 @app.route("/api/auth/otp/verify", methods=["POST"])
@@ -548,14 +551,114 @@ def api_auth_otp_verify():
     if not ok:
         return jsonify({"error": message}), 400
 
-    user = get_or_create_oauth_or_otp_user(email=email)
+    user, is_new = get_or_create_oauth_or_otp_user(email=email)
     login_user(user, remember=True)
-    target_redirect = next_url if _is_safe_redirect_url(next_url) else url_for("reviews_page")
+    if is_new:
+        target_redirect = url_for("profile_setup_page")
+    else:
+        target_redirect = next_url if _is_safe_redirect_url(next_url) else url_for("reviews_page")
     return jsonify({
         "status": "ok",
+        "is_new_user": is_new,
         "message": "Signed in with verified email OTP.",
         "user": user.to_public_dict(),
         "redirect": target_redirect,
+    }), 200
+
+
+@app.route("/profile")
+@login_required
+def profile_page():
+    return render_template("dashboard.html", active_page="profile", setup_mode=False)
+
+
+@app.route("/profile/setup")
+@login_required
+def profile_setup_page():
+    return render_template("dashboard.html", active_page="profile", setup_mode=True)
+
+
+@app.route("/api/profile", methods=["GET", "POST", "PUT"])
+@login_required
+def api_profile():
+    user = db.session.get(User, int(current_user.id)) if not isinstance(current_user, SupabaseSessionUser) else None
+    if user is None:
+        return jsonify({"error": "User profile record not found."}), 404
+
+    if request.method == "GET":
+        user_reviews = Review.query.filter_by(user_id=user.id).all()
+        total_rev = len(user_reviews)
+        avg_rating = round(sum(r.rating for r in user_reviews) / total_rev, 2) if total_rev else None
+        return jsonify({
+            "user": user.to_public_dict(),
+            "stats": {
+                "total_reviews": total_rev,
+                "average_rating": avg_rating,
+                "agent_reviews": sum(1 for r in user_reviews if r.agent_name),
+                "website_reviews": sum(1 for r in user_reviews if not r.agent_name),
+            },
+        })
+
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "Send a JSON object with profile fields."}), 400
+
+    new_username = str(payload.get("username", user.username) or "").strip()
+    if not USERNAME_PATTERN.match(new_username):
+        return jsonify({
+            "error": "Username must be 3–32 characters using letters, numbers, _, #, ., or - (e.g. Agent_SK#IND)."
+        }), 400
+
+    conflict = (
+        User.query.filter(func.lower(User.username) == new_username.lower(), User.id != user.id).first()
+    )
+    if conflict is not None:
+        return jsonify({"error": f"Username '{new_username}' is already taken. Choose another callsign."}), 409
+
+    raw_role = str(payload.get("main_role", "") or "").strip()
+    if raw_role:
+        matched_role = next((r for r in VALID_MAIN_ROLES if r.casefold() == raw_role.casefold()), None)
+        if matched_role is None:
+            return jsonify({"error": f"Main role must be one of: {', '.join(VALID_MAIN_ROLES)}."}), 400
+        user.main_role = matched_role
+    else:
+        user.main_role = None
+
+    bio = str(payload.get("bio", "") or "").strip()
+    if len(bio) > 280:
+        return jsonify({"error": "Tactical bio must be 280 characters or fewer."}), 400
+    user.bio = bio
+
+    avatar_mode = str(payload.get("avatar_mode", "agent") or "agent").strip().lower()
+    raw_fav_agent = str(payload.get("favorite_agent", "") or "").strip()
+
+    if avatar_mode == "google" and user.google_avatar_url:
+        user.avatar_url = user.google_avatar_url
+        if raw_fav_agent:
+            canonical, err = _canonical_agent_or_none(raw_fav_agent)
+            if not err and canonical:
+                user.favorite_agent = canonical
+    elif raw_fav_agent:
+        canonical, err = _canonical_agent_or_none(raw_fav_agent)
+        if err:
+            return jsonify({"error": err}), 400
+        user.favorite_agent = canonical
+        if canonical:
+            asset = get_agent_asset(canonical, user.main_role)
+            user.avatar_url = asset.get("icon") or asset.get("fallback_icon")
+            if not user.main_role and asset.get("role"):
+                user.main_role = asset["role"]
+    else:
+        user.favorite_agent = None
+        if avatar_mode == "google" and user.google_avatar_url:
+            user.avatar_url = user.google_avatar_url
+
+    user.username = new_username
+    db.session.commit()
+    return jsonify({
+        "status": "ok",
+        "message": "Agent profile saved successfully.",
+        "user": user.to_public_dict(),
     }), 200
 
 
