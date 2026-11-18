@@ -1,0 +1,12 @@
+# Lightweight production requirements for Render Free tier (512 MB RAM).
+# Runs SVM + Naive Bayes live ensemble, XAI, batch analysis, 2026 match analytics,
+# 5v5 draft predictor, Model Lab benchmarks, and Supabase Auth/Reviews in ~140 MB RAM.
+Flask>=3.0.0,<4.0.0
+Flask-SQLAlchemy>=3.1.0,<4.0.0
+Flask-Login>=0.6.3,<1.0.0
+gunicorn>=22.0.0,<24.0.0
+numpy>=1.26.0,<3.0.0
+pandas>=2.0.0,<4.0.0
+scikit-learn>=1.4.0,<2.0.0
+joblib>=1.4.0
+pyarrow>=14.0.0

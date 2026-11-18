@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="570" viewBox="0 0 880 570">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="440.0" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#182026">NLP Sentiment Confusion Matrices (Held-Out Test Set)</text>
+<text x="172.0" y="84" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#182026">Majority baseline (44.8%)</text>
+<text x="80" y="128.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<rect x="88" y="96" width="54" height="54" rx="3" fill="rgb(245, 248, 255)" stroke="#CBD5E0"/>
+<text x="115.0" y="128.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">0</text>
+<rect x="144" y="96" width="54" height="54" rx="3" fill="rgb(245, 248, 255)" stroke="#CBD5E0"/>
+<text x="171.0" y="128.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">0</text>
+<rect x="200" y="96" width="54" height="54" rx="3" fill="rgb(73, 130, 186)" stroke="#CBD5E0"/>
+<text x="227.0" y="128.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">110</text>
+<text x="80" y="184.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<rect x="88" y="152" width="54" height="54" rx="3" fill="rgb(245, 248, 255)" stroke="#CBD5E0"/>
+<text x="115.0" y="184.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">0</text>
+<rect x="144" y="152" width="54" height="54" rx="3" fill="rgb(245, 248, 255)" stroke="#CBD5E0"/>
+<text x="171.0" y="184.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">0</text>
+<rect x="200" y="152" width="54" height="54" rx="3" fill="rgb(201, 218, 237)" stroke="#CBD5E0"/>
+<text x="227.0" y="184.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">28</text>
+<text x="80" y="240.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<rect x="88" y="208" width="54" height="54" rx="3" fill="rgb(245, 248, 255)" stroke="#CBD5E0"/>
+<text x="115.0" y="240.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">0</text>
+<rect x="144" y="208" width="54" height="54" rx="3" fill="rgb(245, 248, 255)" stroke="#CBD5E0"/>
+<text x="171.0" y="240.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">0</text>
+<rect x="200" y="208" width="54" height="54" rx="3" fill="rgb(70, 128, 185)" stroke="#CBD5E0"/>
+<text x="227.0" y="240.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">112</text>
+<text x="115.0" y="280.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<text x="171.0" y="280.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<text x="227.0" y="280.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<text x="452.0" y="84" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#182026">SVM (85.2%)</text>
+<text x="360" y="128.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<rect x="368" y="96" width="54" height="54" rx="3" fill="rgb(75, 131, 187)" stroke="#CBD5E0"/>
+<text x="395.0" y="128.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">97</text>
+<rect x="424" y="96" width="54" height="54" rx="3" fill="rgb(245, 248, 255)" stroke="#CBD5E0"/>
+<text x="451.0" y="128.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">0</text>
+<rect x="480" y="96" width="54" height="54" rx="3" fill="rgb(222, 232, 245)" stroke="#CBD5E0"/>
+<text x="507.0" y="128.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">13</text>
+<text x="360" y="184.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<rect x="368" y="152" width="54" height="54" rx="3" fill="rgb(227, 236, 248)" stroke="#CBD5E0"/>
+<text x="395.0" y="184.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">10</text>
+<rect x="424" y="152" width="54" height="54" rx="3" fill="rgb(217, 228, 243)" stroke="#CBD5E0"/>
+<text x="451.0" y="184.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">16</text>
+<rect x="480" y="152" width="54" height="54" rx="3" fill="rgb(241, 245, 253)" stroke="#CBD5E0"/>
+<text x="507.0" y="184.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">2</text>
+<text x="360" y="240.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<rect x="368" y="208" width="54" height="54" rx="3" fill="rgb(224, 233, 246)" stroke="#CBD5E0"/>
+<text x="395.0" y="240.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">12</text>
+<rect x="424" y="208" width="54" height="54" rx="3" fill="rgb(245, 248, 255)" stroke="#CBD5E0"/>
+<text x="451.0" y="240.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">0</text>
+<rect x="480" y="208" width="54" height="54" rx="3" fill="rgb(70, 128, 185)" stroke="#CBD5E0"/>
+<text x="507.0" y="240.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">100</text>
+<text x="395.0" y="280.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<text x="451.0" y="280.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<text x="507.0" y="280.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<text x="732.0" y="84" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#182026">Naive Bayes (84.4%)</text>
+<text x="640" y="128.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<rect x="648" y="96" width="54" height="54" rx="3" fill="rgb(70, 128, 185)" stroke="#CBD5E0"/>
+<text x="675.0" y="128.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">102</text>
+<rect x="704" y="96" width="54" height="54" rx="3" fill="rgb(243, 246, 254)" stroke="#CBD5E0"/>
+<text x="731.0" y="128.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">1</text>
+<rect x="760" y="96" width="54" height="54" rx="3" fill="rgb(232, 239, 250)" stroke="#CBD5E0"/>
+<text x="787.0" y="128.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">7</text>
+<text x="640" y="184.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<rect x="648" y="152" width="54" height="54" rx="3" fill="rgb(229, 237, 248)" stroke="#CBD5E0"/>
+<text x="675.0" y="184.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">9</text>
+<rect x="704" y="152" width="54" height="54" rx="3" fill="rgb(217, 229, 244)" stroke="#CBD5E0"/>
+<text x="731.0" y="184.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">16</text>
+<rect x="760" y="152" width="54" height="54" rx="3" fill="rgb(239, 244, 252)" stroke="#CBD5E0"/>
+<text x="787.0" y="184.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">3</text>
+<text x="640" y="240.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<rect x="648" y="208" width="54" height="54" rx="3" fill="rgb(214, 226, 242)" stroke="#CBD5E0"/>
+<text x="675.0" y="240.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">18</text>
+<rect x="704" y="208" width="54" height="54" rx="3" fill="rgb(243, 246, 254)" stroke="#CBD5E0"/>
+<text x="731.0" y="240.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">1</text>
+<rect x="760" y="208" width="54" height="54" rx="3" fill="rgb(85, 138, 191)" stroke="#CBD5E0"/>
+<text x="787.0" y="240.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">93</text>
+<text x="675.0" y="280.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<text x="731.0" y="280.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<text x="787.0" y="280.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<text x="172.0" y="334" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#182026">LSTM (80.0%)</text>
+<text x="80" y="378.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<rect x="88" y="346" width="54" height="54" rx="3" fill="rgb(81, 135, 189)" stroke="#CBD5E0"/>
+<text x="115.0" y="378.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">89</text>
+<rect x="144" y="346" width="54" height="54" rx="3" fill="rgb(239, 244, 252)" stroke="#CBD5E0"/>
+<text x="171.0" y="378.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">3</text>
+<rect x="200" y="346" width="54" height="54" rx="3" fill="rgb(211, 225, 241)" stroke="#CBD5E0"/>
+<text x="227.0" y="378.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">18</text>
+<text x="80" y="434.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<rect x="88" y="402" width="54" height="54" rx="3" fill="rgb(232, 239, 249)" stroke="#CBD5E0"/>
+<text x="115.0" y="434.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">7</text>
+<rect x="144" y="402" width="54" height="54" rx="3" fill="rgb(215, 227, 243)" stroke="#CBD5E0"/>
+<text x="171.0" y="434.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">16</text>
+<rect x="200" y="402" width="54" height="54" rx="3" fill="rgb(235, 241, 251)" stroke="#CBD5E0"/>
+<text x="227.0" y="434.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">5</text>
+<text x="80" y="490.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<rect x="88" y="458" width="54" height="54" rx="3" fill="rgb(215, 227, 243)" stroke="#CBD5E0"/>
+<text x="115.0" y="490.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">16</text>
+<rect x="144" y="458" width="54" height="54" rx="3" fill="rgb(243, 246, 254)" stroke="#CBD5E0"/>
+<text x="171.0" y="490.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">1</text>
+<rect x="200" y="458" width="54" height="54" rx="3" fill="rgb(70, 128, 185)" stroke="#CBD5E0"/>
+<text x="227.0" y="490.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">95</text>
+<text x="115.0" y="530.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<text x="171.0" y="530.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<text x="227.0" y="530.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<text x="452.0" y="334" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#182026">DistilBERT (82.0%)</text>
+<text x="360" y="378.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<rect x="368" y="346" width="54" height="54" rx="3" fill="rgb(81, 136, 189)" stroke="#CBD5E0"/>
+<text x="395.0" y="378.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">96</text>
+<rect x="424" y="346" width="54" height="54" rx="3" fill="rgb(229, 237, 248)" stroke="#CBD5E0"/>
+<text x="451.0" y="378.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">9</text>
+<rect x="480" y="346" width="54" height="54" rx="3" fill="rgb(236, 242, 251)" stroke="#CBD5E0"/>
+<text x="507.0" y="378.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">5</text>
+<text x="360" y="434.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<rect x="368" y="402" width="54" height="54" rx="3" fill="rgb(217, 229, 244)" stroke="#CBD5E0"/>
+<text x="395.0" y="434.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">16</text>
+<rect x="424" y="402" width="54" height="54" rx="3" fill="rgb(234, 241, 250)" stroke="#CBD5E0"/>
+<text x="451.0" y="434.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">6</text>
+<rect x="480" y="402" width="54" height="54" rx="3" fill="rgb(234, 241, 250)" stroke="#CBD5E0"/>
+<text x="507.0" y="434.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">6</text>
+<text x="360" y="490.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<rect x="368" y="458" width="54" height="54" rx="3" fill="rgb(231, 238, 249)" stroke="#CBD5E0"/>
+<text x="395.0" y="490.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">8</text>
+<rect x="424" y="458" width="54" height="54" rx="3" fill="rgb(243, 246, 254)" stroke="#CBD5E0"/>
+<text x="451.0" y="490.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">1</text>
+<rect x="480" y="458" width="54" height="54" rx="3" fill="rgb(70, 128, 185)" stroke="#CBD5E0"/>
+<text x="507.0" y="490.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">103</text>
+<text x="395.0" y="530.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<text x="451.0" y="530.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<text x="507.0" y="530.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<text x="732.0" y="334" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#182026">Four-model ensemble (88.8%)</text>
+<text x="640" y="378.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<rect x="648" y="346" width="54" height="54" rx="3" fill="rgb(76, 132, 187)" stroke="#CBD5E0"/>
+<text x="675.0" y="378.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">100</text>
+<rect x="704" y="346" width="54" height="54" rx="3" fill="rgb(236, 242, 251)" stroke="#CBD5E0"/>
+<text x="731.0" y="378.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">5</text>
+<rect x="760" y="346" width="54" height="54" rx="3" fill="rgb(236, 242, 251)" stroke="#CBD5E0"/>
+<text x="787.0" y="378.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">5</text>
+<text x="640" y="434.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<rect x="648" y="402" width="54" height="54" rx="3" fill="rgb(231, 238, 249)" stroke="#CBD5E0"/>
+<text x="675.0" y="434.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">8</text>
+<rect x="704" y="402" width="54" height="54" rx="3" fill="rgb(214, 227, 242)" stroke="#CBD5E0"/>
+<text x="731.0" y="434.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">18</text>
+<rect x="760" y="402" width="54" height="54" rx="3" fill="rgb(241, 245, 253)" stroke="#CBD5E0"/>
+<text x="787.0" y="434.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">2</text>
+<text x="640" y="490.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+<rect x="648" y="458" width="54" height="54" rx="3" fill="rgb(231, 238, 249)" stroke="#CBD5E0"/>
+<text x="675.0" y="490.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">8</text>
+<rect x="704" y="458" width="54" height="54" rx="3" fill="rgb(245, 248, 255)" stroke="#CBD5E0"/>
+<text x="731.0" y="490.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#182026">0</text>
+<rect x="760" y="458" width="54" height="54" rx="3" fill="rgb(70, 128, 185)" stroke="#CBD5E0"/>
+<text x="787.0" y="490.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">104</text>
+<text x="675.0" y="530.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neg</text>
+<text x="731.0" y="530.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Neu</text>
+<text x="787.0" y="530.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#4A5568">Pos</text>
+</svg>

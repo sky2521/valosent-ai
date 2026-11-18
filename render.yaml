@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: valosent-ai
+    runtime: python
+    plan: free
+    buildCommand: pip install --upgrade pip && pip install -r requirements-render.txt
+    startCommand: gunicorn --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:$PORT app:app
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: FLASK_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: VALOSENT_LOW_MEMORY
+        value: "1"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SUPABASE_URL
+        value: https://jwbhemwtmonxrtnlrtie.supabase.co
+      - key: SUPABASE_PUBLISHABLE_KEY
+        value: sb_publishable_sOM4YjPzyP3ol9BorYMO0w_9kz9Zogr

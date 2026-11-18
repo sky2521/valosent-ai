@@ -1,0 +1,23 @@
+{
+  "source_file": "user_reviews.parquet",
+  "source_rows": 1299,
+  "missing_review_text_rows": 0,
+  "invalid_or_missing_score_rows": 0,
+  "empty_review_rows": 0,
+  "empty_after_cleaning_rows": 47,
+  "duplicate_review_score_rows_removed": 6,
+  "retained_rows": 1246,
+  "label_mapping": {
+    "Negative": "scores 0-4",
+    "Neutral": "scores 5-6",
+    "Positive": "scores 7-10"
+  },
+  "class_counts": {
+    "Negative": 551,
+    "Neutral": 139,
+    "Positive": 556
+  },
+  "limitations": [
+    "Sentiment labels are derived from review scores, not human annotations."
+  ]
+}

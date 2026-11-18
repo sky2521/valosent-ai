@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VALOSENT AI | {{ 'Create Account' if mode == 'register' else 'Login' }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=2026-v4" />
+  </head>
+  <body class="auth-body">
+    <main class="auth-shell">
+      <div class="auth-topbar">
+        <a class="brand" href="/dashboard" aria-label="Return to VALOSENT AI dashboard">
+          <span class="brand-mark">V</span>
+          <span><strong>VALOSENT</strong><small>COMPETITIVE INTELLIGENCE</small></span>
+        </a>
+        <a class="quiet-button" href="/reviews">← BACK TO REVIEWS</a>
+      </div>
+
+      <section class="panel auth-card">
+        <div class="auth-tabs" role="tablist">
+          <a href="{{ url_for('login_page', next=next_url) if next_url else url_for('login_page') }}" class="auth-tab {% if mode == 'login' %}active{% endif %}">LOGIN</a>
+          <a href="{{ url_for('register_page', next=next_url) if next_url else url_for('register_page') }}" class="auth-tab {% if mode == 'register' %}active{% endif %}">SIGN UP</a>
+        </div>
+
+        <div class="auth-heading">
+          <p class="kicker">{{ 'NEW AGENT ACCOUNT' if mode == 'register' else 'MEMBER ACCESS' }}{% if supabase_enabled %} · SUPABASE AUTH{% endif %}</p>
+          <h1>{{ 'Create your VALOSENT account' if mode == 'register' else 'Sign in to VALOSENT AI' }}</h1>
+          <p class="panel-note">
+            {{ 'Join the community to publish persistent website & agent reviews stored in Supabase Postgres.' if mode == 'register' else 'Sign in with your account to submit, edit, or manage your VALORANT reviews.' }}
+          </p>
+        </div>
+
+        {% if error %}
+        <div class="auth-alert" role="alert">{{ error }}</div>
+        {% endif %}
+        {% if info_message %}
+        <div class="auth-demo-hint" role="status">{{ info_message }}</div>
+        {% endif %}
+
+        {% if mode == 'register' %}
+        <form method="POST" action="{{ url_for('register_page') }}" class="auth-form">
+          <input type="hidden" name="next" value="{{ next_url }}" />
+          <label class="field">
+            USERNAME
+            <input type="text" name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" autocomplete="username" placeholder="e.g. radiant_veto" value="{{ form_values.username }}" />
+          </label>
+          <label class="field">
+            EMAIL ADDRESS
+            <input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="{{ form_values.email }}" />
+          </label>
+          <label class="field">
+            PASSWORD (MIN 6 CHARACTERS)
+            <input type="password" name="password" required minlength="6" autocomplete="new-password" placeholder="Create a strong password" />
+          </label>
+          <label class="field">
+            CONFIRM PASSWORD
+            <input type="password" name="confirm_password" required minlength="6" autocomplete="new-password" placeholder="Re-enter password" />
+          </label>
+          <button type="submit" class="primary-button auth-submit">CREATE ACCOUNT &amp; SIGN IN</button>
+        </form>
+        <p class="auth-switch">Already have an account? <a class="text-link" href="{{ url_for('login_page', next=next_url) if next_url else url_for('login_page') }}">Log in here →</a></p>
+        {% else %}
+        <form method="POST" action="{{ url_for('login_page') }}" class="auth-form">
+          <input type="hidden" name="next" value="{{ next_url }}" />
+          <label class="field">
+            {{ 'EMAIL ADDRESS' if supabase_enabled else 'EMAIL OR USERNAME' }}
+            <input type="{{ 'email' if supabase_enabled else 'text' }}" name="identifier" required autocomplete="username" placeholder="{{ 'you@example.com' if supabase_enabled else 'Enter email or username' }}" value="{{ form_values.identifier }}" />
+          </label>
+          <label class="field">
+            PASSWORD
+            <input type="password" name="password" required autocomplete="current-password" placeholder="Enter password" />
+          </label>
+          <label class="checkbox-field">
+            <input type="checkbox" name="remember" value="1" checked /> Keep me signed in
+          </label>
+          <button type="submit" class="primary-button auth-submit">SIGN IN</button>
+        </form>
+        {% if not supabase_enabled %}
+        <div class="auth-demo-hint">
+          <strong>Demo Account:</strong> <code>tactical_jett</code> / <code>Player@2026</code>
+        </div>
+        {% endif %}
+        <p class="auth-switch">New to VALOSENT AI? <a class="text-link" href="{{ url_for('register_page', next=next_url) if next_url else url_for('register_page') }}">Create an account →</a></p>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>

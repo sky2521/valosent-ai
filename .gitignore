@@ -1,0 +1,32 @@
+
+# Temporary browser tests and logs
+_browser_test_downloads/
+*_smoke.png
+*_smoke.html
+browser-smoke.stderr.log
+browser-smoke.stdout.log
+install.log
+
+# Model training checkpoints
+models/distilbert_checkpoints/
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+.ipynb_checkpoints/
+
+# SQLite temporary journal files
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Environment secrets
+.env
+
+# Large local-only artifacts (>50 MB, excluded for clean GitHub/Render deploys)
+models/distilbert/model.safetensors
+data/raw/matches/valorant_pro_matches.csv
+valosent.db

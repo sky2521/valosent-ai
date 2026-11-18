@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="480.0" y="38" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#182026">Accuracy Comparison Across Models</text>
+<line x1="75" y1="425.0" x2="925" y2="425.0" stroke="#D9DEE5" stroke-width="1"/>
+<text x="65" y="429.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#4A5568">0%</text>
+<line x1="75" y1="354.0" x2="925" y2="354.0" stroke="#D9DEE5" stroke-width="1"/>
+<text x="65" y="358.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#4A5568">20%</text>
+<line x1="75" y1="283.0" x2="925" y2="283.0" stroke="#D9DEE5" stroke-width="1"/>
+<text x="65" y="287.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#4A5568">40%</text>
+<line x1="75" y1="212.0" x2="925" y2="212.0" stroke="#D9DEE5" stroke-width="1"/>
+<text x="65" y="216.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#4A5568">60%</text>
+<line x1="75" y1="141.0" x2="925" y2="141.0" stroke="#D9DEE5" stroke-width="1"/>
+<text x="65" y="145.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#4A5568">80%</text>
+<line x1="75" y1="70.0" x2="925" y2="70.0" stroke="#D9DEE5" stroke-width="1"/>
+<text x="65" y="74.0" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#4A5568">100%</text>
+<line x1="75" y1="425" x2="925" y2="425" stroke="#4A5568" stroke-width="1.2"/>
+<rect x="101.9" y="266.0" width="87.8" height="159.0" rx="3" fill="#577590"/>
+<text x="145.8" y="258.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#182026">44.8%</text>
+<text x="145.8" y="449.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#2D3748">Majority Baseline</text>
+<rect x="243.6" y="122.5" width="87.8" height="302.5" rx="3" fill="#277DA1"/>
+<text x="287.5" y="114.5" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#182026">85.2%</text>
+<text x="287.5" y="449.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#2D3748">SVM</text>
+<rect x="385.2" y="125.4" width="87.8" height="299.6" rx="3" fill="#43AA8B"/>
+<text x="429.2" y="117.4" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#182026">84.4%</text>
+<text x="429.2" y="449.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#2D3748">Naive Bayes</text>
+<rect x="526.9" y="141.0" width="87.8" height="284.0" rx="3" fill="#90BE6D"/>
+<text x="570.8" y="133.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#182026">80.0%</text>
+<text x="570.8" y="449.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#2D3748">LSTM</text>
+<rect x="668.6" y="133.9" width="87.8" height="291.1" rx="3" fill="#F9C74F"/>
+<text x="712.5" y="125.9" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#182026">82.0%</text>
+<text x="712.5" y="449.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#2D3748">DistilBERT</text>
+<rect x="810.2" y="109.8" width="87.8" height="315.2" rx="3" fill="#F9844A"/>
+<text x="854.2" y="101.8" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#182026">88.8%</text>
+<text x="854.2" y="449.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#2D3748">Four-model Ensemble</text>
+</svg>
