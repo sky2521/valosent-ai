@@ -2488,6 +2488,13 @@ tbody tr:hover {
 .google-avatar-option-wrap {
   display: flex;
 }
+.google-avatar-option-wrap[hidden],
+.agent-avatar-lg[hidden],
+.agent-hero-portrait[hidden],
+.role-icon-mini[hidden],
+.role-mark[hidden] {
+  display: none !important;
+}
 .google-avatar-tile {
   max-width: 340px;
 }
