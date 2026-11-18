@@ -139,9 +139,6 @@
           </label>
           <button type="submit" class="quiet-button auth-submit">SIGN IN WITH PASSWORD</button>
         </form>
-        <div class="auth-demo-hint">
-          <strong>Demo Credentials:</strong> <code>tactical_jett</code> / <code>Player@2026</code> &nbsp;·&nbsp; Or use <strong>Gmail OTP</strong> above for instant one-click verification!
-        </div>
         <p class="auth-switch">New operator? <a class="text-link" href="{{ url_for('register_page', next=next_url) if next_url else url_for('register_page') }}">Register account →</a></p>
         {% endif %}
       </section>
