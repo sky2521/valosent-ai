@@ -30,6 +30,39 @@ Open `http://127.0.0.1:5000`. The match dataset is read from `data/raw/matches/`
 
 The Flask process caches available model objects after the first request. Restart it after retraining so inference picks up new files. Model comparison results are read from `results/model_evaluation.json`; refresh the page after retraining to fetch new metrics.
 
+## Authentication Setup (Google OAuth + Gmail 6-Digit OTP)
+
+VALOSENT AI uses persistent SQLite (`valosent.db` via `Flask-SQLAlchemy`) for `User`, `OTPCode`, and `Review` tables and supports three login flows on `/login` and `/register`:
+
+### 1. Google OAuth ("Continue with Google" via Authlib)
+1. Copy `.env.example` to `.env`.
+2. Open [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials).
+3. Click **Create Credentials → OAuth client ID → Web application**.
+4. Add these exact URLs:
+   - **Authorized JavaScript origins:** `http://127.0.0.1:5000`
+   - **Authorized redirect URIs:** `http://127.0.0.1:5000/login/google/callback`
+5. Paste the generated credentials into `.env`:
+   ```env
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   ```
+6. Restart `python app.py` and click **Continue with Google** on `/login`.
+
+### 2. Gmail 6-Digit OTP Verification (`smtplib`)
+- **Live Gmail SMTP Mode:** Enable 2-Step Verification on your Google account, generate a 16-character **App Password** at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords), and set these in `.env`:
+  ```env
+  GMAIL_USER=your-gmail@gmail.com
+  GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
+  ```
+- **Local Dev Fallback Mode (Zero Setup):** If `GMAIL_USER` / `GMAIL_APP_PASSWORD` are not filled in yet, clicking **Send OTP** still generates a hashed 6-digit OTP (5-minute TTL) in `valosent.db` and prints the code directly inside the Flask terminal console so you can test passwordless OTP login immediately.
+
+### 3. Official VALORANT Visual Assets (`valorant-api.com`)
+Official high-res agent icons, full-body portraits, role icons, and all 13 map splash wallpapers (`Summit`, `Corrode`, `Abyss`, `Sunset`, `Lotus`, `Pearl`, `Fracture`, `Breeze`, `Icebox`, `Ascent`, `Split`, `Haven`, `Bind`) are cached in `data/valorant_assets_cache.json` with guaranteed local SVG fallbacks in `static/assets/fallbacks/`. Refresh them anytime with:
+
+```powershell
+python -m src.valorant_assets
+```
+
 ## Deployment
 
 This project is ready for Render or Docker-based deployment.
@@ -77,7 +110,7 @@ On the expanded 2020–2026 review corpus (`1,246` retained reviews across all 3
 
 Pass `python train_models.py --reuse-distilbert` to retrain the lightweight models and ensemble weights while reusing an existing fine-tuned `models/distilbert/` checkpoint.
 
-The 30-agent, 12-map match-outcome experiment (`30,994` resolved maps, 2021–2026) reports **52.58% accuracy (51.78% macro F1)** versus **56.48% accuracy (36.09% macro F1)** for its majority baseline, and powers the live 5v5 Draft Simulator alongside historical composition and synergy data.
+The 30-agent, 13-map match-outcome experiment (`31,294` resolved maps, 2021–2026, including `Summit` and `Corrode`) reports **51.91% accuracy (51.88% macro F1)** versus **55.66% accuracy (35.47% macro F1)** for its majority baseline, and powers the live 5v5 Draft Simulator alongside historical composition and synergy data.
 
 ## Verification
 

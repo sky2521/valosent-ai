@@ -51,6 +51,8 @@ def get_supabase_config() -> tuple[str, str]:
 
 def is_supabase_enabled() -> bool:
     _load_dotenv_once()
+    if os.environ.get("VALOSENT_STORAGE", "sqlite").strip().lower() != "supabase":
+        return False
     if os.environ.get("VALOSENT_USE_SQLITE", "").strip().lower() in {"1", "true", "yes"}:
         return False
     url, key = get_supabase_config()

@@ -23,7 +23,7 @@ REVIEW_CUTOFF_DATE = pd.Timestamp("2020-06-12")
 
 MAPS_2026 = (
     "Ascent", "Bind", "Breeze", "Fracture", "Haven", "Icebox",
-    "Lotus", "Pearl", "Split", "Sunset", "Abyss", "Corrode",
+    "Lotus", "Pearl", "Split", "Sunset", "Abyss", "Corrode", "Summit",
 )
 
 PRO_TEAMS_2026 = [
@@ -56,11 +56,11 @@ AGENT_PROFILES: dict[str, dict] = {
     "Brimstone": {"role": "Controller", "t_acs": 188, "ct_acs": 196, "hs": 0.26, "fk": 1.5, "best": ["Bind", "Fracture", "Corrode"],   "worst": ["Breeze", "Abyss"]},
     "Clove":     {"role": "Controller", "t_acs": 216, "ct_acs": 219, "hs": 0.27, "fk": 2.4, "best": ["Sunset", "Ascent", "Split"],     "worst": ["Breeze", "Abyss"]},
     "Harbor":    {"role": "Controller", "t_acs": 176, "ct_acs": 188, "hs": 0.26, "fk": 1.3, "best": ["Pearl", "Icebox", "Abyss"],      "worst": ["Split", "Bind"]},
-    "Miks":      {"role": "Controller", "t_acs": 202, "ct_acs": 214, "hs": 0.28, "fk": 1.9, "best": ["Corrode", "Lotus", "Haven"],     "worst": ["Breeze", "Fracture"]},
+    "Miks":      {"role": "Controller", "t_acs": 202, "ct_acs": 214, "hs": 0.28, "fk": 1.9, "best": ["Corrode", "Summit", "Lotus"],    "worst": ["Breeze", "Fracture"]},
     "Omen":      {"role": "Controller", "t_acs": 191, "ct_acs": 199, "hs": 0.27, "fk": 1.7, "best": ["Ascent", "Lotus", "Sunset"],     "worst": ["Breeze", "Icebox"]},
     "Viper":     {"role": "Controller", "t_acs": 192, "ct_acs": 196, "hs": 0.26, "fk": 1.5, "best": ["Icebox", "Bind", "Breeze"],      "worst": ["Ascent", "Sunset"]},
     # Duelists
-    "Hush":      {"role": "Duelist",    "t_acs": 236, "ct_acs": 231, "hs": 0.29, "fk": 3.4, "best": ["Corrode", "Sunset", "Haven"],    "worst": ["Icebox", "Breeze"]},
+    "Hush":      {"role": "Duelist",    "t_acs": 236, "ct_acs": 231, "hs": 0.29, "fk": 3.4, "best": ["Summit", "Corrode", "Sunset"],   "worst": ["Icebox", "Breeze"]},
     "Iso":       {"role": "Duelist",    "t_acs": 231, "ct_acs": 227, "hs": 0.29, "fk": 3.2, "best": ["Haven", "Lotus", "Ascent"],      "worst": ["Bind", "Fracture"]},
     "Jett":      {"role": "Duelist",    "t_acs": 229, "ct_acs": 234, "hs": 0.26, "fk": 3.7, "best": ["Ascent", "Abyss", "Icebox"],     "worst": ["Bind", "Fracture"]},
     "Neon":      {"role": "Duelist",    "t_acs": 232, "ct_acs": 225, "hs": 0.25, "fk": 3.8, "best": ["Sunset", "Lotus", "Fracture"],   "worst": ["Breeze", "Ascent"]},
@@ -173,6 +173,13 @@ MAP_META_COMPS: dict[str, list[tuple[str, ...]]] = {
         ("Miks", "Phoenix", "Tejo", "Veto", "Waylay"),
         ("Deadlock", "Gekko", "Hush", "Miks", "Vyse"),
     ],
+    "Summit": [
+        ("Hush", "Miks", "Sova", "Veto", "Waylay"),
+        ("Clove", "Hush", "Miks", "Tejo", "Vyse"),
+        ("Astra", "Deadlock", "Hush", "Tejo", "Yoru"),
+        ("Gekko", "Hush", "Miks", "Veto", "Yoru"),
+        ("Clove", "Jett", "Sova", "Veto", "Vyse"),
+    ],
 }
 
 # Release timeline windows so matches follow chronological patch eras (2023-2026).
@@ -202,9 +209,9 @@ ERAS = [
     (
         "2026-01-08", "2026-11-15",
         ["11.06", "11.08", "11.10", "12.0", "12.03", "12.06"],
-        1576,
+        1876,
         {"Deadlock", "Iso", "Clove", "Vyse", "Tejo", "Waylay", "Veto", "Miks", "Hush"},
-        {"Ascent": 8, "Bind": 7, "Haven": 9, "Lotus": 9, "Split": 8, "Sunset": 10, "Abyss": 10, "Corrode": 16, "Pearl": 7, "Fracture": 6, "Icebox": 5, "Breeze": 5},
+        {"Ascent": 7, "Bind": 6, "Haven": 8, "Lotus": 8, "Split": 7, "Sunset": 9, "Abyss": 9, "Corrode": 14, "Summit": 16, "Pearl": 5, "Fracture": 4, "Icebox": 4, "Breeze": 3},
     ),
 ]
 

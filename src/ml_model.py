@@ -213,7 +213,7 @@ def train_match_model() -> dict:
     results = {
         "model": "Logistic Regression",
         "task": "Predict team 1 map win from map, patch, and pre-match agent/role lineups",
-        "source": "Valorant Pro Matches Statistics (2021-2026 expanded 30-agent, 12-map snapshot)",
+        "source": "Valorant Pro Matches Statistics (2021-2026 expanded 30-agent, 13-map snapshot)",
         "features": ["map", "patch", "team agent indicators", "team role counts"],
         "excluded_to_prevent_leakage": LEAKAGE_EXCLUDED_FEATURES,
         "split": "GroupShuffleSplit by match date and unordered team pair; mirrored training rows only",
@@ -240,7 +240,7 @@ def train_match_model() -> dict:
             "The source has no explicit match ID, event, region, or starting-side data.",
             "The split groups same-date team pairings to reduce series leakage but cannot guarantee event-level separation.",
             "The target is map winner; no side-specific win prediction is supported.",
-            "The dataset spans April 2021 through November 2026 across all 30 agents and 12 maps.",
+            "The dataset spans April 2021 through November 2026 across all 30 agents and 13 maps.",
         ],
     }
 

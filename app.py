@@ -10,12 +10,27 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
+from authlib.integrations.flask_client import OAuth
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from sqlalchemy import func
 from werkzeug.exceptions import RequestEntityTooLarge
 
-from src.database import Review, User, classify_review_sentiment, db, init_db
+from src.database import (
+    OTPCode,
+    Review,
+    User,
+    classify_review_sentiment,
+    create_otp_code,
+    db,
+    get_or_create_oauth_or_otp_user,
+    init_db,
+    is_gmail_smtp_configured,
+    load_local_env,
+    record_analyzed_review,
+    send_otp_email,
+    verify_otp_code,
+)
 from src.supabase_backend import (
     create_supabase_review,
     delete_supabase_review,
@@ -27,6 +42,7 @@ from src.supabase_backend import (
     supabase_signup,
     update_supabase_review,
 )
+from src.valorant_assets import get_agent_asset, get_all_assets, get_map_asset
 
 from src.analytics import (
     get_agent_comparison,
@@ -56,6 +72,7 @@ from src.review_analysis import (
     analyze_review_context,
     get_agent_catalog,
     get_agent_review_sentiment,
+    get_map_sentiment_summary,
     get_sentiment_by_agent,
 )
 from src.sentiment import get_score_distribution, get_sentiment_distribution
@@ -63,6 +80,8 @@ from src.text_processing import clean_review
 
 BASE_DIR = Path(__file__).resolve().parent
 MODELS_DIR = BASE_DIR / "models"
+
+load_local_env()
 
 app = Flask(__name__)
 # Limit incoming request size before Flask reads JSON or CSV payloads into memory.
@@ -79,6 +98,37 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 init_db(app)
 
+oauth = OAuth(app)
+_GOOGLE_OAUTH_PLACEHOLDERS = {
+    "",
+    "your-google-client-id.apps.googleusercontent.com",
+    "your-google-client-secret",
+    "change-me",
+}
+
+
+def is_google_oauth_configured() -> bool:
+    load_local_env()
+    cid = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+    csec = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
+    return cid.lower() not in _GOOGLE_OAUTH_PLACEHOLDERS and csec.lower() not in _GOOGLE_OAUTH_PLACEHOLDERS
+
+
+def _get_google_oauth_client():
+    if not is_google_oauth_configured():
+        return None
+    client = oauth.create_client("google")
+    if client is None:
+        client = oauth.register(
+            name="google",
+            client_id=os.environ["GOOGLE_CLIENT_ID"].strip(),
+            client_secret=os.environ["GOOGLE_CLIENT_SECRET"].strip(),
+            server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+            client_kwargs={"scope": "openid email profile"},
+        )
+    return client
+
+
 login_manager = LoginManager()
 login_manager.login_view = "login_page"
 login_manager.login_message_category = "info"
@@ -93,11 +143,17 @@ class SupabaseSessionUser(UserMixin):
         self.username = username
         self.email = email
         self.role = role
+        self.avatar_url = None
+        self.is_verified = True
 
 
 @app.context_processor
 def inject_auth_context():
-    return {"supabase_enabled": is_supabase_enabled()}
+    return {
+        "supabase_enabled": is_supabase_enabled(),
+        "google_oauth_configured": is_google_oauth_configured(),
+        "gmail_smtp_configured": is_gmail_smtp_configured(),
+    }
 
 
 @login_manager.user_loader
@@ -378,6 +434,154 @@ def login_page():
     )
 
 
+@app.route("/login/google")
+def login_google():
+    if current_user.is_authenticated:
+        return redirect(url_for("reviews_page"))
+    client = _get_google_oauth_client()
+    if client is None:
+        return render_template(
+            "auth.html",
+            mode="login",
+            error=(
+                "Google OAuth is not configured yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your .env file "
+                "(Authorized Redirect URI: http://127.0.0.1:5000/login/google/callback) and restart Flask — or sign in instantly with Gmail OTP below!"
+            ),
+            info_message=None,
+            form_values={"identifier": ""},
+            next_url=request.args.get("next", ""),
+        )
+    next_url = request.args.get("next", "")
+    if _is_safe_redirect_url(next_url):
+        session["oauth_next"] = next_url
+    redirect_uri = url_for("google_auth_callback", _external=True)
+    return client.authorize_redirect(redirect_uri)
+
+
+@app.route("/login/google/callback")
+def google_auth_callback():
+    client = _get_google_oauth_client()
+    if client is None:
+        flash("Google OAuth is not configured in .env.", "error")
+        return redirect(url_for("login_page"))
+    try:
+        token = client.authorize_access_token()
+        userinfo = token.get("userinfo")
+        if not userinfo:
+            userinfo = client.userinfo()
+    except Exception as exc:
+        LOGGER.exception("Google OAuth callback failed.")
+        return render_template(
+            "auth.html",
+            mode="login",
+            error=f"Google Sign-In failed ({exc}). Please try again or use Gmail OTP.",
+            info_message=None,
+            form_values={"identifier": ""},
+            next_url="",
+        )
+
+    email = str((userinfo or {}).get("email", "")).strip().lower()
+    google_id = str((userinfo or {}).get("sub", "")).strip() or None
+    full_name = str((userinfo or {}).get("name", "")).strip() or None
+    avatar_url = str((userinfo or {}).get("picture", "")).strip() or None
+    if not email:
+        return render_template(
+            "auth.html",
+            mode="login",
+            error="Google did not return an email address for this account.",
+            info_message=None,
+            form_values={"identifier": ""},
+            next_url="",
+        )
+
+    user = get_or_create_oauth_or_otp_user(
+        email=email,
+        username_hint=full_name,
+        google_id=google_id,
+        avatar_url=avatar_url,
+    )
+    login_user(user, remember=True)
+    next_url = session.pop("oauth_next", None)
+    return redirect(next_url if _is_safe_redirect_url(next_url) else url_for("reviews_page"))
+
+
+@app.route("/api/auth/otp/send", methods=["POST"])
+def api_auth_otp_send():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "Send a JSON object with an email address."}), 400
+    email = str(payload.get("email", "")).strip().lower()
+    if not EMAIL_PATTERN.match(email):
+        return jsonify({"error": "Please enter a valid Gmail or email address."}), 400
+
+    code = create_otp_code(email, ttl_minutes=5)
+    ok, delivery, message = send_otp_email(email, code, ttl_minutes=5)
+    if not ok:
+        return jsonify({"error": message, "delivery": delivery}), 502
+
+    is_local_dev = request.remote_addr in {"127.0.0.1", "::1"} or request.host.startswith(("127.0.0.1", "localhost"))
+    response_body = {
+        "status": "sent",
+        "email": email,
+        "delivery": delivery,
+        "message": message,
+        "expires_in_seconds": 300,
+    }
+    if delivery == "console_dev" and is_local_dev:
+        response_body["dev_otp"] = code
+    return jsonify(response_body), 200
+
+
+@app.route("/api/auth/otp/verify", methods=["POST"])
+def api_auth_otp_verify():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "Send a JSON object with email and 6-digit otp."}), 400
+    email = str(payload.get("email", "")).strip().lower()
+    raw_otp = str(payload.get("otp", "")).strip()
+    next_url = str(payload.get("next", "")).strip()
+
+    if not EMAIL_PATTERN.match(email):
+        return jsonify({"error": "Please enter a valid email address."}), 400
+
+    ok, message = verify_otp_code(email, raw_otp)
+    if not ok:
+        return jsonify({"error": message}), 400
+
+    user = get_or_create_oauth_or_otp_user(email=email)
+    login_user(user, remember=True)
+    target_redirect = next_url if _is_safe_redirect_url(next_url) else url_for("reviews_page")
+    return jsonify({
+        "status": "ok",
+        "message": "Signed in with verified email OTP.",
+        "user": user.to_public_dict(),
+        "redirect": target_redirect,
+    }), 200
+
+
+@app.route("/api/auth/status")
+def api_auth_status():
+    return jsonify({
+        "authenticated": bool(current_user.is_authenticated),
+        "google_oauth_configured": is_google_oauth_configured(),
+        "gmail_smtp_configured": is_gmail_smtp_configured(),
+        "user": (
+            current_user.to_public_dict()
+            if current_user.is_authenticated and hasattr(current_user, "to_public_dict")
+            else (
+                {
+                    "id": current_user.id,
+                    "username": current_user.username,
+                    "email": getattr(current_user, "email", ""),
+                    "role": getattr(current_user, "role", "user"),
+                }
+                if current_user.is_authenticated
+                else None
+            )
+        ),
+    })
+
+
 @app.route("/logout", methods=["GET", "POST"])
 def logout_page():
     if is_supabase_enabled():
@@ -436,6 +640,7 @@ def reviews_page():
                 db.session.add(
                     Review(
                         user_id=current_user.id,
+                        target_type="Agent" if agent_name else "Website",
                         agent_name=agent_name,
                         rating=rating,
                         sentiment_label=sentiment,
@@ -496,6 +701,7 @@ def api_reviews():
 
         review = Review(
             user_id=current_user.id,
+            target_type="Agent" if agent_name else "Website",
             agent_name=agent_name,
             rating=rating,
             sentiment_label=sentiment,
@@ -660,6 +866,7 @@ def api_review_item(review_id: int):
         if agent_error:
             return jsonify({"error": agent_error}), 400
         review.agent_name = agent_name
+        review.target_type = "Agent" if agent_name else "Website"
 
     review.sentiment_label = classify_review_sentiment(review.comment, review.rating)
     review.updated_at = datetime.now(timezone.utc)
@@ -702,20 +909,119 @@ def predict():
         return jsonify({"error": str(error)}), 503
 
     analysis = enrich_review_context(review)
-    return jsonify({**prediction, "analysis": analysis})
+    overall = prediction.get("overall", {})
+    derived_score = float(overall.get("derived_score", 5.5))
+    predicted_label = str(overall.get("label", "Neutral"))
+    detected_agents = [item["agent"] for item in analysis.get("agents", [])]
+    detected_maps = [item["map"] for item in analysis.get("maps", [])]
+
+    # Optionally record into live SQLite telemetry so /sentiment counters update in real time.
+    recorded_live = False
+    if bool(payload.get("record_live", False)):
+        try:
+            record_analyzed_review(
+                review_text=review,
+                sentiment_label=predicted_label,
+                derived_score=derived_score,
+                agents=detected_agents,
+                maps=detected_maps,
+            )
+            recorded_live = True
+        except Exception:
+            LOGGER.exception("Could not record live analyzed review.")
+
+    # Build Community Comparison against the 100,000+ (2020-2026) corpus for detected agents & maps
+    community_comparison = []
+    try:
+        dist = get_sentiment_distribution()
+        overall_avg = float(dist.get("average_score") or 6.1)
+        community_comparison.append({
+            "entity": "All VALORANT Reviews",
+            "entity_type": "overall",
+            "community_avg_score": round(overall_avg, 2),
+            "review_score": round(derived_score, 1),
+            "delta": round(derived_score - overall_avg, 2),
+            "positive_percentage": dist["percentages"]["Positive"],
+            "total_mentions": dist["total_reviews"],
+        })
+        for agent_name in detected_agents:
+            a_stats = get_agent_review_sentiment(agent_name)
+            if a_stats and a_stats.get("total_mentions"):
+                c_avg = float(a_stats.get("average_score") or overall_avg)
+                community_comparison.append({
+                    "entity": agent_name,
+                    "entity_type": "agent",
+                    "community_avg_score": round(c_avg, 2),
+                    "review_score": round(derived_score, 1),
+                    "delta": round(derived_score - c_avg, 2),
+                    "positive_percentage": a_stats["positive_percentage"],
+                    "total_mentions": a_stats["total_mentions"],
+                })
+        map_summary = get_map_sentiment_summary()
+        for map_name in detected_maps:
+            m_stats = map_summary.get(map_name)
+            if m_stats and m_stats.get("total_mentions"):
+                c_avg = float(m_stats.get("average_score") or overall_avg)
+                community_comparison.append({
+                    "entity": map_name,
+                    "entity_type": "map",
+                    "community_avg_score": round(c_avg, 2),
+                    "review_score": round(derived_score, 1),
+                    "delta": round(derived_score - c_avg, 2),
+                    "positive_percentage": m_stats["positive_percentage"],
+                    "total_mentions": m_stats["total_mentions"],
+                })
+    except Exception:
+        LOGGER.exception("Could not compute community comparison.")
+
+    return jsonify({
+        **prediction,
+        "analysis": analysis,
+        "community_comparison": community_comparison,
+        "recorded_live": recorded_live,
+    })
 
 
-def _extract_reviews_from_csv(raw_bytes: bytes) -> list[str]:
-    text = raw_bytes.decode("utf-8-sig", errors="replace")
-    reader = csv.DictReader(io.StringIO(text))
-    if reader.fieldnames:
-        normalized = {str(col).strip().casefold(): col for col in reader.fieldnames if col}
-        target_col = next(
-            (normalized[name] for name in ("review_text", "review", "text", "comment", "feedback") if name in normalized),
-            reader.fieldnames[0],
-        )
-        return [str(row.get(target_col, "") or "").strip() for row in reader if row]
-    return [line.strip() for line in text.splitlines() if line.strip()]
+def _extract_reviews_from_csv(raw_bytes: bytes, filename: str = "") -> list[str]:
+    text = raw_bytes.decode("utf-8-sig", errors="replace").strip()
+    if not text:
+        return []
+    if filename.lower().endswith(".txt"):
+        return [line.strip() for line in text.splitlines() if line.strip()]
+
+    known_headers = {"review_text", "review", "text", "comment", "feedback", "body", "message"}
+    rows = list(csv.reader(io.StringIO(text)))
+    if not rows:
+        return []
+
+    first_row = [str(cell).strip() for cell in rows[0]]
+    lowered_header = [cell.casefold() for cell in first_row]
+    header_match_idx = next(
+        (idx for idx, col in enumerate(lowered_header) if col in known_headers),
+        None,
+    )
+    if header_match_idx is not None:
+        return [
+            str(r[header_match_idx]).strip()
+            for r in rows[1:]
+            if len(r) > header_match_idx and str(r[header_match_idx]).strip()
+        ]
+    if len(first_row) > 1:
+        # Multi-column CSV with non-standard header: pick column with longest average text
+        data_rows = rows[1:] if rows[1:] else rows
+        col_scores = []
+        for col_idx in range(len(first_row)):
+            vals = [str(r[col_idx]).strip() for r in data_rows[:50] if len(r) > col_idx]
+            avg_len = sum(len(v) for v in vals) / max(len(vals), 1)
+            col_scores.append((avg_len, col_idx))
+        best_col = max(col_scores)[1]
+        return [
+            str(r[best_col]).strip()
+            for r in data_rows
+            if len(r) > best_col and str(r[best_col]).strip()
+        ]
+    # Single-column file without a recognized header: treat every line as a review!
+    return [str(r[0]).strip() for r in rows if r and str(r[0]).strip()]
 
 
 @app.route("/api/sentiment/batch", methods=["POST"])
@@ -730,7 +1036,7 @@ def api_sentiment_batch():
         raw_bytes = uploaded.read()
         if not raw_bytes:
             return jsonify({"error": "Uploaded file is empty."}), 400
-        reviews = _extract_reviews_from_csv(raw_bytes)
+        reviews = _extract_reviews_from_csv(raw_bytes, uploaded.filename)
         include_distilbert = str(request.form.get("include_distilbert", "false")).casefold() in {"1", "true", "yes"}
     else:
         payload = request.get_json(silent=True)
@@ -791,6 +1097,13 @@ def api_match_predict():
 @app.route("/health")
 def health():
     return jsonify({"status": "ok", "project": "VALOSENT AI"})
+
+
+@app.route("/api/assets")
+def api_assets():
+    response = jsonify(get_all_assets())
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    return response
 
 
 @app.route("/api/maps")
@@ -889,6 +1202,7 @@ def api_agent_profile(agent_name: str):
         "best_maps": best_maps,
         "worst_maps": worst_maps,
         "review_sentiment": sentiment,
+        "assets": get_agent_asset(catalog_entry["agent"], catalog_entry["role"]),
     })
 
 
@@ -903,7 +1217,7 @@ def api_map(map_name: str):
     result = get_map_stats(map_name)
     if result is None:
         return jsonify({"error": f"Unknown map: {map_name}"}), 404
-    return jsonify(result)
+    return jsonify({**result, "assets": get_map_asset(result["map"])})
 
 
 @app.route("/api/agent/<path:agent_name>")

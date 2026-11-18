@@ -1,9 +1,9 @@
 {
   "strategy": "validation_macro_f1",
   "weights": {
-    "SVM": 0.05,
-    "Naive Bayes": 0.35,
-    "LSTM": 0.1,
-    "DistilBERT": 0.5
+    "SVM": 0.4,
+    "Naive Bayes": 0.2,
+    "LSTM": 0.3,
+    "DistilBERT": 0.1
   }
 }

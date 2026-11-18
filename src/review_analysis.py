@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import json
 from pathlib import Path
 import re
 
 import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-REVIEW_DATA_PATH = BASE_DIR / "data" / "user_reviews.parquet"
+DEFAULT_REVIEW_DATA_PATH = BASE_DIR / "data" / "user_reviews.parquet"
+REVIEW_DATA_PATH = DEFAULT_REVIEW_DATA_PATH
+SUMMARY_CACHE_PATH = BASE_DIR / "data" / "review_summary_cache.json"
 AGENT_ROLES_PATH = BASE_DIR / "data" / "agents" / "agent_roles.csv"
 SENTIMENTS = ("Positive", "Neutral", "Negative")
 POLARITY_WORDS = {
@@ -283,15 +286,48 @@ def analyze_review_context(review: str) -> dict:
 
 
 @lru_cache(maxsize=1)
-def _get_base_agent_sentiment_data() -> tuple[dict[str, dict[str, int]], dict[str, dict[str, dict[str, int]]]]:
-    frame = _load_review_frame()
-    catalog = get_agent_catalog()
-    counts = {
-        item["agent"]: {label: 0 for label in SENTIMENTS}
-        for item in catalog
-    }
-    trends: dict[str, dict[str, dict[str, int]]] = {item["agent"]: {} for item in catalog}
+def _load_review_summary_cache() -> dict | None:
+    if not SUMMARY_CACHE_PATH.exists():
+        return None
+    try:
+        return json.loads(SUMMARY_CACHE_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
 
+
+@lru_cache(maxsize=1)
+def _get_base_agent_sentiment_data() -> tuple[
+    dict[str, dict[str, int]],
+    dict[str, dict[str, dict[str, int]]],
+    dict[str, float | None],
+]:
+    catalog = get_agent_catalog()
+    counts = {item["agent"]: {label: 0 for label in SENTIMENTS} for item in catalog}
+    trends: dict[str, dict[str, dict[str, int]]] = {item["agent"]: {} for item in catalog}
+    avg_scores: dict[str, float | None] = {item["agent"]: None for item in catalog}
+
+    if REVIEW_DATA_PATH == DEFAULT_REVIEW_DATA_PATH:
+        cache = _load_review_summary_cache()
+        if cache and isinstance(cache.get("agents"), list):
+            for entry in cache["agents"]:
+                agent = entry.get("agent")
+                if agent not in counts:
+                    continue
+                counts[agent]["Positive"] = int(entry.get("positive_reviews", 0))
+                counts[agent]["Neutral"] = int(entry.get("neutral_reviews", 0))
+                counts[agent]["Negative"] = int(entry.get("negative_reviews", 0))
+                avg_scores[agent] = entry.get("average_score")
+                for point in entry.get("trend", []):
+                    d = str(point.get("date", ""))
+                    if d:
+                        trends[agent][d] = {
+                            "Positive": int(point.get("Positive", 0)),
+                            "Neutral": int(point.get("Neutral", 0)),
+                            "Negative": int(point.get("Negative", 0)),
+                        }
+            return counts, trends, avg_scores
+
+    frame = _load_review_frame()
     for review, published_date in zip(frame["review_text"], frame["published_date"]):
         mentions = _name_matches(review, tuple(counts))
         seen = set()
@@ -306,14 +342,19 @@ def _get_base_agent_sentiment_data() -> tuple[dict[str, dict[str, int]], dict[st
                 date_key = published_date.date().isoformat()
                 trends[agent].setdefault(date_key, {label: 0 for label in SENTIMENTS})
                 trends[agent][date_key][sentiment] += 1
-    return counts, trends
+    return counts, trends, avg_scores
 
 
 def _load_live_community_agent_reviews() -> list[dict]:
+    if REVIEW_DATA_PATH != DEFAULT_REVIEW_DATA_PATH:
+        return []
+
+    collected: list[dict] = []
     try:
         from src.supabase_backend import get_supabase_agent_review_rows, is_supabase_enabled
         if is_supabase_enabled():
-            return get_supabase_agent_review_rows()
+            collected.extend(get_supabase_agent_review_rows())
+            return collected
     except Exception:
         pass
 
@@ -322,33 +363,51 @@ def _load_live_community_agent_reviews() -> list[dict]:
         if has_app_context():
             from src.database import Review
             rows = Review.query.filter(Review.agent_name.isnot(None)).all()
-            return [
+            collected.extend(
                 {
                     "agent_name": row.agent_name,
                     "sentiment_label": row.sentiment_label,
+                    "score": float(row.rating) * 2.0,
                     "created_at": row.created_at.isoformat() if row.created_at else None,
                 }
                 for row in rows
                 if row.agent_name
-            ]
+            )
+        else:
+            from src.database import get_community_agent_review_rows
+            collected.extend(get_community_agent_review_rows())
     except Exception:
         pass
 
     try:
-        from src.database import get_community_agent_review_rows
-        return get_community_agent_review_rows()
+        from src.database import get_live_analyzed_review_rows
+        for item in get_live_analyzed_review_rows():
+            for agent_name in item.get("agents", []):
+                collected.append({
+                    "agent_name": agent_name,
+                    "sentiment_label": item.get("sentiment_label", "Neutral"),
+                    "score": float(item.get("derived_score", 5.5)),
+                    "created_at": item.get("created_at"),
+                })
     except Exception:
-        return []
+        pass
+
+    return collected
 
 
 def get_sentiment_by_agent() -> list[dict]:
     catalog = get_agent_catalog()
-    base_counts, base_trends = _get_base_agent_sentiment_data()
+    base_counts, base_trends, base_avg = _get_base_agent_sentiment_data()
     counts = {agent: dict(vals) for agent, vals in base_counts.items()}
     trends = {
         agent: {date_k: dict(daily) for date_k, daily in agent_trend.items()}
         for agent, agent_trend in base_trends.items()
     }
+    score_sums = {}
+    for agent, vals in counts.items():
+        base_tot = sum(vals.values())
+        score_sums[agent] = (float(base_avg[agent]) * base_tot) if (base_tot and base_avg.get(agent) is not None) else 0.0
+
     canonical_by_key = {
         re.sub(r"[^a-z0-9]", "", item["agent"].casefold()): item["agent"]
         for item in catalog
@@ -363,11 +422,13 @@ def get_sentiment_by_agent() -> list[dict]:
         if label not in SENTIMENTS:
             label = "Neutral"
         counts[agent][label] += 1
+        if row.get("score") is not None:
+            score_sums[agent] += float(row["score"])
         created_raw = row.get("created_at")
         if created_raw:
             parsed = pd.to_datetime(created_raw, errors="coerce")
             if pd.notna(parsed):
-                date_key = parsed.date().isoformat()
+                date_key = parsed.strftime("%Y-%m")
                 trends[agent].setdefault(date_key, {lbl: 0 for lbl in SENTIMENTS})
                 trends[agent][date_key][label] += 1
 
@@ -375,12 +436,14 @@ def get_sentiment_by_agent() -> list[dict]:
     for item in catalog:
         agent = item["agent"]
         total = sum(counts[agent].values())
+        avg_sc = round(score_sums[agent] / total, 2) if (total and score_sums[agent] > 0) else base_avg.get(agent)
         rows.append({
             **item,
             "positive_reviews": counts[agent]["Positive"],
             "neutral_reviews": counts[agent]["Neutral"],
             "negative_reviews": counts[agent]["Negative"],
             "total_mentions": total,
+            "average_score": avg_sc,
             "positive_percentage": round(counts[agent]["Positive"] / total * 100, 2) if total else 0.0,
             "neutral_percentage": round(counts[agent]["Neutral"] / total * 100, 2) if total else 0.0,
             "negative_percentage": round(counts[agent]["Negative"] / total * 100, 2) if total else 0.0,
@@ -388,9 +451,42 @@ def get_sentiment_by_agent() -> list[dict]:
                 {"date": date, **daily_counts}
                 for date, daily_counts in sorted(trends[agent].items())
             ],
-            "method": "Combines formal mention-level polarity scoring (2020-2026 corpus) with live community agent reviews stored in valosent.db.",
+            "method": "Combines the 100,000+ (2020-2026) VALORANT review corpus with live community & analyzed reviews in valosent.db.",
         })
     return rows
+
+
+def get_map_sentiment_summary() -> dict[str, dict]:
+    """Return 100,000+ community sentiment statistics per map (for live Community Comparison cards)."""
+    cache = _load_review_summary_cache() if REVIEW_DATA_PATH == DEFAULT_REVIEW_DATA_PATH else None
+    raw_maps = (cache or {}).get("maps", {})
+    result = {name: dict(vals) for name, vals in raw_maps.items()}
+
+    if REVIEW_DATA_PATH == DEFAULT_REVIEW_DATA_PATH:
+        try:
+            from src.database import get_live_analyzed_review_rows
+            for row in get_live_analyzed_review_rows():
+                lbl = str(row.get("sentiment_label", "Neutral")).title()
+                if lbl not in SENTIMENTS:
+                    lbl = "Neutral"
+                sc = float(row.get("derived_score", 5.5))
+                for m_name in row.get("maps", []):
+                    if m_name not in result:
+                        continue
+                    entry = result[m_name]
+                    old_tot = int(entry.get("total_mentions", 0))
+                    old_sum = float(entry.get("average_score") or 5.5) * old_tot
+                    key_lbl = f"{lbl.lower()}_reviews"
+                    entry[key_lbl] = int(entry.get(key_lbl, 0)) + 1
+                    new_tot = old_tot + 1
+                    entry["total_mentions"] = new_tot
+                    entry["average_score"] = round((old_sum + sc) / new_tot, 2)
+                    entry["positive_percentage"] = round(entry["positive_reviews"] / new_tot * 100, 2)
+                    entry["neutral_percentage"] = round(entry["neutral_reviews"] / new_tot * 100, 2)
+                    entry["negative_percentage"] = round(entry["negative_reviews"] / new_tot * 100, 2)
+        except Exception:
+            pass
+    return result
 
 
 def get_agent_review_sentiment(agent_name: str) -> dict | None:

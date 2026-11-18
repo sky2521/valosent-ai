@@ -4,20 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VALOSENT AI | {{ active_page|title }}</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230F1923'/%3E%3Cpolygon points='10,12 24,12 36,42 36,52 24,52' fill='%23FF4655'/%3E%3Cpolygon points='54,12 40,12 33,31 45,31' fill='%23ECE8E1'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=2026-v4" />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=2026-v8" />
     <script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}?v=4.4.8" defer></script>
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2026-v4" defer></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2026-v8" defer></script>
   </head>
   <body data-page="{{ active_page }}" data-selected-map="{{ selected_map|default('') }}" data-selected-agent="{{ selected_agent|default('') }}" data-authenticated="{{ 'true' if current_user.is_authenticated else 'false' }}" data-mine-only="{{ 'true' if mine_only|default(false) else 'false' }}">
+    <!-- Dynamic Map & Agent Crossfade Backdrop Layers -->
+    <div id="hud-backdrop-a" class="hud-backdrop-layer" aria-hidden="true"></div>
+    <div id="hud-backdrop-b" class="hud-backdrop-layer" aria-hidden="true"></div>
+    <div class="hud-vignette" aria-hidden="true"></div>
+    <div class="hud-grid-overlay" aria-hidden="true"></div>
+    <div class="hud-watermark" aria-hidden="true">// VALOSENT PROTOCOL · VCT 2026</div>
+
     <div class="app-shell">
       <aside class="sidebar">
         <a class="brand" href="/dashboard" aria-label="VALOSENT AI dashboard">
           <span class="brand-mark">V</span>
-          <span><strong>VALOSENT</strong><small>COMPETITIVE INTELLIGENCE</small></span>
+          <span><strong>VALOSENT</strong><small>TACTICAL INTELLIGENCE</small></span>
         </a>
+        <div class="sidebar-protocol-tag">// PROTOCOL v2026.13</div>
         <nav class="primary-nav" aria-label="Main navigation">
           <a href="/dashboard" class="{% if active_page == 'dashboard' %}active{% endif %}"><span class="nav-index">01</span>Overview</a>
           <a href="/maps" class="{% if active_page == 'maps' %}active{% endif %}"><span class="nav-index">02</span>Maps</a>
@@ -34,18 +43,28 @@
         </nav>
         <div class="sidebar-footer">
           <span class="status-dot"></span>
-          <div><strong>2021–2026 DATASET</strong><small>April 2021 - Nov 2026</small></div>
+          <div><strong>2021–2026 DATASET</strong><small>30 Agents · 13 Maps · Live HUD</small></div>
         </div>
       </aside>
 
       <div class="main-shell">
         <header class="topbar">
-          <div class="breadcrumb"><span>VALOSENT AI</span><b>/</b><strong>{{ active_page|replace('-', ' ')|upper }}</strong></div>
+          <div class="breadcrumb">
+            <span class="coord-chip">// VALOSENT PROTOCOL</span>
+            <b>/</b>
+            <strong>{{ active_page|replace('-', ' ')|upper }}</strong>
+          </div>
           <div class="topbar-actions">
             <a class="sentiment-shortcut" href="/sentiment">ANALYZE A REVIEW <span aria-hidden="true">↗</span></a>
             {% if current_user.is_authenticated %}
             <span class="user-badge" title="Signed in as {{ current_user.username }}">
-              <span class="user-dot"></span>@{{ current_user.username }}
+              {% if current_user.avatar_url %}
+              <img class="user-avatar-mini" src="{{ current_user.avatar_url }}" alt="{{ current_user.username }}" referrerpolicy="no-referrer" />
+              {% else %}
+              <span class="user-dot"></span>
+              {% endif %}
+              @{{ current_user.username }}
+              {% if current_user.is_verified %}<em class="verified-tag" title="Verified account">✓</em>{% endif %}
               {% if current_user.role == 'admin' %}<em class="admin-tag">ADMIN</em>{% endif %}
             </span>
             <a class="topbar-link" href="/reviews?mine=1">MY REVIEWS</a>
@@ -61,13 +80,13 @@
 
           {% if active_page == 'dashboard' %}
           <section class="page-heading">
-            <div><p class="kicker">MATCH & MODEL INTELLIGENCE</p><h1>Competitive overview</h1><p class="lede">Historical professional match patterns and VALORANT player-review sentiment.</p></div>
+            <div><p class="kicker">// MATCH &amp; MODEL INTELLIGENCE · 2021–2026</p><h1>Competitive overview</h1><p class="lede">Historical professional VALORANT match patterns across 30 agents and 13 maps paired with ensemble review sentiment.</p></div>
             <div class="snapshot-tag"><span class="status-dot"></span><span>SNAPSHOT<br /><strong id="snapshot-range">Loading...</strong></span></div>
           </section>
           <section class="metric-grid" aria-label="Dataset coverage">
             <article class="metric"><span>MAP RECORDS</span><strong id="metric-map-groups">--</strong><small>Validated 5v5 map groups</small></article>
-            <article class="metric"><span>MAPS</span><strong id="metric-maps">--</strong><small>Present in the source data</small></article>
-            <article class="metric"><span>AGENTS</span><strong id="metric-agents">--</strong><small>With mapped role metadata</small></article>
+            <article class="metric"><span>STANDARD MAPS</span><strong id="metric-maps">--</strong><small>Bind through Corrode &amp; Summit</small></article>
+            <article class="metric"><span>AGENTS</span><strong id="metric-agents">--</strong><small>With official Riot art &amp; role data</small></article>
             <article class="metric"><span>PLAYER LABELS</span><strong id="metric-players">--</strong><small>Source labels, not verified identities</small></article>
           </section>
           <div class="dashboard-grid">
@@ -88,20 +107,76 @@
               <p class="panel-note">Labels are derived from review scores, not human annotations.</p>
             </section>
           </div>
+
           {% elif active_page == 'maps' %}
-          <section class="page-heading"><div><p class="kicker">HISTORICAL MAP RESULTS</p><h1>Map analysis</h1><p class="lede">Agent selections and outcomes from the available professional match snapshot.</p></div></section>
+          <section class="page-heading"><div><p class="kicker">// HISTORICAL MAP INTEL · ALL 13 MAPS THROUGH 2026</p><h1>Map analysis</h1><p class="lede">Switch maps to dynamically load official VALORANT map splash intel, top meta agent portraits, and T/CT performance metrics.</p></div></section>
           <section class="panel filter-panel"><label class="field">MAP<select id="map-filter"></select></label><label class="field">ROLE<select id="map-role-filter"><option>All</option></select></label><div class="field"><span>SIDE METRIC</span><div class="segmented" id="map-side-filter"><button type="button" data-side="both" class="selected">Overall</button><button type="button" data-side="attack">T-side</button><button type="button" data-side="defense">CT-side</button></div></div></section>
+          <section class="map-hero-banner" id="map-hero-banner">
+            <div class="map-hero-meta">
+              <p class="kicker" id="map-hero-coords">// SECTOR COORDINATES</p>
+              <h2 id="map-hero-name">Select a Map</h2>
+              <p class="panel-note" id="map-hero-sub">Official VALORANT tactical splash loaded dynamically.</p>
+            </div>
+            <div class="map-hero-agents-wrap">
+              <span class="kicker">TOP META AGENTS</span>
+              <div class="map-meta-avatars" id="map-hero-top-agents"></div>
+            </div>
+          </section>
           <section class="metric-grid compact-metrics"><article class="metric"><span>MAP GROUPS</span><strong id="map-group-count">--</strong></article><article class="metric"><span>AGENT PICKS</span><strong id="map-pick-count">--</strong></article><article class="metric"><span>AVAILABLE AGENTS</span><strong id="map-agent-count">--</strong></article></section>
           <section class="panel"><div class="panel-heading"><div><p class="kicker">AVAILABLE METRICS</p><h2 id="map-table-title">Agent results</h2></div></div><div class="chart-wrap"><canvas id="map-agent-chart" aria-label="Map agent recommendation comparison"></canvas></div><div class="table-wrap"><table><thead><tr><th>AGENT</th><th>ROLE</th><th>MAP PICKS</th><th>PICK RATE</th><th>MAP WIN RATE</th><th>T-SIDE ACS</th><th>CT-SIDE ACS</th></tr></thead><tbody id="map-agent-table"></tbody></table></div><p class="panel-note">T-side and CT-side columns show median player ACS, not side win rates. Rates include sample counts in the recommendation view.</p></section>
+
           {% elif active_page == 'agents' %}
-          <section class="page-heading"><div><p class="kicker">AGENT PROFILE</p><h1>Agent performance</h1><p class="lede">Compare historical map results for an agent represented in the source data.</p></div></section>
-          <section class="panel filter-panel"><label class="field">AGENT<select id="agent-filter"></select></label></section>
-          <section class="agent-profile"><div class="agent-id"><span id="agent-role-mark" class="role-mark">--</span><div><p class="kicker" id="agent-role">ROLE</p><h2 id="agent-name">Select an agent</h2></div></div><div class="agent-facts"><div><span>MAP APPEARANCES</span><strong id="agent-appearances">--</strong></div><div><span>PICK RATE</span><strong id="agent-pick-rate">--</strong></div><div><span>MAP WIN RATE</span><strong id="agent-win-rate">--</strong></div><div><span>T-SIDE MEDIAN ACS</span><strong id="agent-attack-acs">--</strong></div><div><span>CT-SIDE MEDIAN ACS</span><strong id="agent-defense-acs">--</strong></div><div><span>BEST QUALIFIED MAP</span><strong id="agent-best-map">--</strong></div><div><span>WORST QUALIFIED MAP</span><strong id="agent-worst-map">--</strong></div></div></section>
-          <section class="panel"><div class="panel-heading"><div><p class="kicker">REVIEW SENTIMENT</p><h2>Detected review mentions</h2></div></div><div class="metric-grid compact-metrics"><article class="metric"><span>POSITIVE</span><strong id="agent-positive">--</strong><small id="agent-positive-count">--</small></article><article class="metric"><span>NEUTRAL</span><strong id="agent-neutral">--</strong><small id="agent-neutral-count">--</small></article><article class="metric"><span>NEGATIVE</span><strong id="agent-negative">--</strong><small id="agent-negative-count">--</small></article><article class="metric"><span>MENTIONS</span><strong id="agent-mentions">--</strong><small>Exact-name review matches</small></article></div><p class="panel-note" id="agent-sentiment-method"></p><div class="chart-wrap chart-short" id="agent-sentiment-trend-wrap"><canvas id="agent-sentiment-trend" aria-label="Mention-context sentiment counts over review publication dates"></canvas></div><p class="data-unavailable" id="agent-sentiment-trend-empty" hidden></p></section>
-          <section class="panel"><div class="panel-heading"><div><p class="kicker">BY MAP</p><h2>Performance profile</h2></div></div><div class="agent-chart-grid"><div class="chart-wrap"><canvas id="agent-map-chart" aria-label="Agent win rate and pick rate by map"></canvas></div><div class="chart-wrap"><canvas id="agent-side-acs-chart" aria-label="Agent median T-side and CT-side ACS by map"></canvas></div></div><div class="table-wrap"><table><thead><tr><th>MAP</th><th>APPEARANCES</th><th>PICK RATE</th><th>MAP WIN RATE</th><th>T-SIDE ACS</th><th>CT-SIDE ACS</th></tr></thead><tbody id="agent-map-table"></tbody></table></div></section>
+          <section class="page-heading"><div><p class="kicker">// AGENT DOSSIER · 30 PLAYABLE AGENTS (2021–2026)</p><h1>Agent performance</h1><p class="lede">Select any agent — including Veto, Vyse, Miks, Hush, Tejo, Waylay, Clove, Yoru, and Gekko — to inspect official artwork and complete 13-map combat stats.</p></div></section>
+          <section class="panel filter-panel agent-filter-panel">
+            <label class="field">SELECT AGENT<select id="agent-filter"></select></label>
+            <div class="agent-quick-strip" id="agent-roster-strip" aria-label="Quick select agent portrait"></div>
+          </section>
+          <section class="agent-profile" id="agent-profile-hero">
+            <img id="agent-hero-bg" class="agent-hero-bg" src="" alt="" aria-hidden="true" hidden />
+            <img id="agent-hero-portrait" class="agent-hero-portrait" src="" alt="" aria-hidden="true" hidden />
+            <div class="agent-hero-content">
+              <div class="agent-id">
+                <div class="agent-avatar-frame">
+                  <img id="agent-avatar-img" class="agent-avatar-lg" src="" alt="" hidden />
+                  <span id="agent-role-mark" class="role-mark">--</span>
+                </div>
+                <div>
+                  <p class="kicker agent-role-line">
+                    <img id="agent-role-icon" class="role-icon-mini" src="" alt="" hidden />
+                    <span id="agent-role">ROLE</span>
+                  </p>
+                  <h2 id="agent-name">Select an agent</h2>
+                </div>
+              </div>
+              <div class="agent-facts">
+                <div><span>MAP APPEARANCES</span><strong id="agent-appearances">--</strong></div>
+                <div><span>PICK RATE</span><strong id="agent-pick-rate">--</strong></div>
+                <div><span>MAP WIN RATE</span><strong id="agent-win-rate">--</strong></div>
+                <div><span>T-SIDE MEDIAN ACS</span><strong id="agent-attack-acs">--</strong></div>
+                <div><span>CT-SIDE MEDIAN ACS</span><strong id="agent-defense-acs">--</strong></div>
+                <div><span>BEST QUALIFIED MAP</span><strong id="agent-best-map">--</strong></div>
+                <div><span>WORST QUALIFIED MAP</span><strong id="agent-worst-map">--</strong></div>
+                <div><span>REVIEW MENTIONS</span><strong id="agent-hero-mentions">--</strong></div>
+              </div>
+            </div>
+          </section>
+          <section class="panel"><div class="panel-heading"><div><p class="kicker">REVIEW SENTIMENT</p><h2>Detected review mentions</h2></div></div><div class="metric-grid compact-metrics"><article class="metric"><span>POSITIVE</span><strong id="agent-positive">--</strong><small id="agent-positive-count">--</small></article><article class="metric"><span>NEUTRAL</span><strong id="agent-neutral">--</strong><small id="agent-neutral-count">--</small></article><article class="metric"><span>NEGATIVE</span><strong id="agent-negative">--</strong><small id="agent-negative-count">--</small></article><article class="metric"><span>MENTIONS</span><strong id="agent-mentions">--</strong><small>Exact-name + community reviews</small></article></div><p class="panel-note" id="agent-sentiment-method"></p><div class="chart-wrap chart-short" id="agent-sentiment-trend-wrap"><canvas id="agent-sentiment-trend" aria-label="Mention-context sentiment counts over review publication dates"></canvas></div><p class="data-unavailable" id="agent-sentiment-trend-empty" hidden></p></section>
+          <section class="panel"><div class="panel-heading"><div><p class="kicker">BY MAP · ALL 13 MAPS</p><h2>Performance profile</h2></div></div><div class="agent-chart-grid"><div class="chart-wrap"><canvas id="agent-map-chart" aria-label="Agent win rate and pick rate by map"></canvas></div><div class="chart-wrap"><canvas id="agent-side-acs-chart" aria-label="Agent median T-side and CT-side ACS by map"></canvas></div></div><div class="table-wrap"><table><thead><tr><th>MAP</th><th>APPEARANCES</th><th>PICK RATE</th><th>MAP WIN RATE</th><th>T-SIDE ACS</th><th>CT-SIDE ACS</th></tr></thead><tbody id="agent-map-table"></tbody></table></div></section>
+
           {% elif active_page == 'recommend' %}
-          <section class="page-heading"><div><p class="kicker">DATA-DRIVEN SUGGESTIONS</p><h1>Agent recommendations</h1><p class="lede">Rankings use the selected map, role, and available side-specific metric.</p></div></section>
+          <section class="page-heading"><div><p class="kicker">// TACTICAL DRAFT &amp; META ENGINE · 13 MAPS</p><h1>Agent recommendations</h1><p class="lede">Map-reactive tactical recommendations, observed pro team compositions, co-pick synergies, and live 5v5 draft predictions.</p></div></section>
           <section class="panel filter-panel"><label class="field">MAP<select id="recommend-map"></select></label><label class="field">ROLE<select id="recommend-role"><option>All</option></select></label><div class="field"><span>SIDE</span><div class="segmented" id="recommend-side"><button type="button" data-side="both" class="selected">Both</button><button type="button" data-side="attack">Attack</button><button type="button" data-side="defense">Defense</button></div></div><button type="button" class="primary-button" id="run-recommendation">UPDATE</button></section>
+          <section class="map-hero-banner" id="recommend-hero-banner">
+            <div class="map-hero-meta">
+              <p class="kicker" id="recommend-hero-coords">// SECTOR COORDINATES</p>
+              <h2 id="recommend-hero-name">Select a Map</h2>
+              <p class="panel-note" id="recommend-hero-sub">Top Wilson 95% LB meta picks for this map.</p>
+            </div>
+            <div class="map-hero-agents-wrap">
+              <span class="kicker">RECOMMENDED META CORE</span>
+              <div class="map-meta-avatars" id="recommend-hero-top-agents"></div>
+            </div>
+          </section>
           <section class="recommendation-layout"><div class="panel"><div class="panel-heading"><div><p class="kicker">RANKED AGENTS</p><h2 id="recommend-title">Select a map</h2></div></div><div id="recommendation-list" class="recommendation-list"></div><p class="panel-note" id="recommendation-method"></p></div><div class="panel"><div class="panel-heading"><div><p class="kicker">HISTORICAL DATA</p><h2>Team composition</h2></div></div><div id="composition-list" class="composition-list"></div><p class="panel-note">These are observed compositions only; no synthetic fifth agent is added.</p></div></section>
           <section class="panel"><div class="panel-heading"><div><p class="kicker">CO-PICKS</p><h2>Agent pairings</h2></div><label class="field compact-field">AGENT<select id="synergy-agent"></select></label></div><div class="table-wrap"><table><thead><tr><th>PARTNER</th><th>MAP</th><th>MAPS TOGETHER</th><th>PAIR WIN RATE</th><th>WILSON 95% LB</th></tr></thead><tbody id="synergy-table"></tbody></table></div><p class="panel-note">Pairings are ranked by Wilson 95% lower bound to balance win rate and sample support. Pair win rate is descriptive, not causal.</p></section>
           <section class="panel draft-panel" id="draft-simulator">
@@ -109,10 +184,11 @@
               <div><p class="kicker">LIVE 5V5 DRAFT SIMULATOR</p><h2>Matchup &amp; lineup analyzer</h2></div>
               <button type="button" class="quiet-button" id="draft-load-preset">LOAD PRO META PRESET</button>
             </div>
-            <p class="panel-note">Test two 5-agent lineups on the selected map. Combines role coverage, historical composition stats, pair synergy, and the trained Logistic Regression map-outcome model.</p>
+            <p class="panel-note">Test two 5-agent lineups on any of the 13 maps (including Summit and Corrode). Combines role coverage, historical composition stats, pair synergy, and the trained Logistic Regression map-outcome model.</p>
             <div class="draft-grid">
               <div class="draft-team-panel">
                 <h3>TEAM 1 LINEUP (5 AGENTS)</h3>
+                <div class="draft-avatar-strip" id="draft-team1-avatars"></div>
                 <div class="draft-slot-grid" id="draft-team1-slots">
                   <select class="draft-select" data-team="1" data-slot="0" aria-label="Team 1 agent 1"></select>
                   <select class="draft-select" data-team="1" data-slot="1" aria-label="Team 1 agent 2"></select>
@@ -123,6 +199,7 @@
               </div>
               <div class="draft-team-panel">
                 <h3>TEAM 2 LINEUP (5 AGENTS)</h3>
+                <div class="draft-avatar-strip" id="draft-team2-avatars"></div>
                 <div class="draft-slot-grid" id="draft-team2-slots">
                   <select class="draft-select" data-team="2" data-slot="0" aria-label="Team 2 agent 1"></select>
                   <select class="draft-select" data-team="2" data-slot="1" aria-label="Team 2 agent 2"></select>
@@ -135,8 +212,9 @@
             <div class="button-row"><button type="button" class="primary-button" id="run-draft-analysis">ANALYZE 5V5 DRAFT</button></div>
             <div id="draft-results" class="draft-results" hidden></div>
           </section>
+
           {% elif active_page == 'compare' %}
-          <section class="page-heading"><div><p class="kicker">HEAD-TO-HEAD INTELLIGENCE · 30 AGENTS (2021–2026)</p><h1>Agent comparison</h1><p class="lede">Click any 2 to 5 agents below to compare win rate, pick rate, T/CT combat ACS, best/worst maps, role synergy, and community sentiment instantly.</p></div></section>
+          <section class="page-heading"><div><p class="kicker">// HEAD-TO-HEAD INTELLIGENCE · 30 AGENTS (2021–2026)</p><h1>Agent comparison</h1><p class="lede">Click any 2 to 5 agents below to compare win rate, pick rate, T/CT combat ACS, best/worst maps, role synergy, and community sentiment instantly.</p></div></section>
           <section class="panel compare-picker-panel">
             <div class="compare-top-bar">
               <div class="selected-tray-wrap">
@@ -191,39 +269,120 @@
               <div class="table-wrap"><table><thead><tr><th>AGENT</th><th>ROLE</th><th>MAP</th><th>APPEARANCES</th><th>PICK RATE</th><th>WIN RATE</th><th>T-SIDE ACS</th><th>CT-SIDE ACS</th></tr></thead><tbody id="compare-table"></tbody></table></div>
             </section>
           </div>
+
           {% elif active_page == 'sentiment' %}
-          <section class="page-heading"><div><p class="kicker">REVIEW CLASSIFICATION</p><h1>Sentiment analysis</h1><p class="lede">Compare score-derived sentiment predictions from LinearSVC, Naive Bayes, LSTM, and DistilBERT against a majority-class baseline.</p></div></section>
-          <section class="sentiment-layout"><div class="panel"><div class="panel-heading"><div><p class="kicker">REVIEW INPUT</p><h2>Analyze player feedback</h2></div></div><div class="preset-row" aria-label="Sample review presets"><span class="preset-label">DEMO PRESETS</span><button type="button" class="preset-chip" data-preset="mixed">Mixed Agent + Matchmaking</button><button type="button" class="preset-chip" data-preset="negative">Anti-Cheat &amp; Lag</button><button type="button" class="preset-chip" data-preset="positive">Gunplay &amp; Optimization</button><button type="button" class="preset-chip" data-preset="neutral">Balanced Pros &amp; Cons</button></div><form id="dashboard-predict-form"><label class="field">VALORANT REVIEW<textarea id="dashboard-review" rows="7" maxlength="5000" placeholder="Paste a VALORANT review (up to 5,000 characters)..."></textarea></label><div class="button-row"><button class="primary-button" type="submit">ANALYZE</button><button class="quiet-button" type="button" id="clear-review">CLEAR</button></div></form><div id="prediction-results" class="prediction-results" hidden></div></div><div class="panel"><div class="panel-heading"><div><p class="kicker">DATASET LABELS</p><h2>Score-derived distribution</h2></div></div><div class="chart-wrap chart-donut"><canvas id="sentiment-chart" aria-label="Review sentiment class counts"></canvas></div><div id="sentiment-counts" class="legend-list"></div><p class="panel-note" id="sentiment-source-note"></p></div></section>
+          <section class="page-heading">
+            <div>
+              <p class="kicker">// NLP REVIEW INTELLIGENCE · 100,000+ REVIEWS (2020–2026)</p>
+              <h1>Sentiment analysis</h1>
+              <p class="lede">Real-time 4-model ensemble classification (LinearSVC, Naive Bayes, BiLSTM, DistilBERT) with derived 0–10 scoring, inline XAI highlights, 100k+ community comparison, and bulk CSV analysis.</p>
+            </div>
+            <div class="snapshot-tag"><span class="status-dot"></span><span>CORPUS SCALE<br /><strong id="sent-kpi-range">Loading...</strong></span></div>
+          </section>
+
+          <section class="metric-grid" aria-label="100k+ sentiment corpus overview">
+            <article class="metric"><span>TOTAL REVIEWS</span><strong id="sent-kpi-total">--</strong><small id="sent-kpi-live">Live telemetry active</small></article>
+            <article class="metric"><span>COMMUNITY AVG SCORE</span><strong id="sent-kpi-avg">--</strong><small>0.0 – 10.0 derived scale</small></article>
+            <article class="metric"><span>POSITIVE SHARE</span><strong id="sent-kpi-pos">--</strong><small id="sent-kpi-pos-count">--</small></article>
+            <article class="metric"><span>AGENT COVERAGE</span><strong>30 / 13</strong><small>Agents &amp; maps tracked live</small></article>
+          </section>
+
+          <section class="sentiment-layout">
+            <div class="panel">
+              <div class="panel-heading">
+                <div><p class="kicker">LIVE REVIEW INPUT</p><h2>Analyze player feedback</h2></div>
+                <span class="role-pill" id="live-sync-pill">LIVE TELEMETRY ON</span>
+              </div>
+              <div class="preset-row" aria-label="Sample review presets">
+                <span class="preset-label">DEMO PRESETS</span>
+                <button type="button" class="preset-chip" data-preset="mixed">Veto + Corrode (Mixed)</button>
+                <button type="button" class="preset-chip" data-preset="negative">Hush + Anti-Cheat Lag</button>
+                <button type="button" class="preset-chip" data-preset="positive">Miks + Summit Gunplay</button>
+                <button type="button" class="preset-chip" data-preset="neutral">Balanced Pros &amp; Cons</button>
+              </div>
+              <form id="dashboard-predict-form">
+                <label class="field">VALORANT REVIEW<textarea id="dashboard-review" rows="6" maxlength="5000" placeholder="Paste any VALORANT player review mentioning agents (Veto, Miks, Hush, Vyse, Clove, Jett...) or maps (Summit, Corrode, Abyss, Ascent...)..."></textarea></label>
+                <div class="button-row batch-controls">
+                  <button class="primary-button" type="submit" id="analyze-submit-btn">ANALYZE</button>
+                  <button class="quiet-button" type="button" id="clear-review">CLEAR</button>
+                  <label class="checkbox-field"><input type="checkbox" id="record-live-checkbox" checked /> Sync to live 100k+ counters</label>
+                </div>
+              </form>
+              <div id="prediction-results" class="prediction-results" hidden></div>
+            </div>
+            <div class="panel">
+              <div class="panel-heading"><div><p class="kicker">100,000+ DATASET LABELS</p><h2>Score-derived distribution</h2></div></div>
+              <div class="sentiment-summary">
+                <div class="chart-wrap chart-donut"><canvas id="sentiment-chart" aria-label="Review sentiment class counts"></canvas></div>
+                <div id="sentiment-counts" class="legend-list"></div>
+              </div>
+              <p class="panel-note" id="sentiment-source-note"></p>
+            </div>
+          </section>
+
           <section class="panel batch-panel" id="batch-analyzer">
             <div class="panel-heading">
-              <div><p class="kicker">BULK FEEDBACK INTELLIGENCE</p><h2>Batch CSV &amp; multi-review analyzer</h2></div>
-              <button type="button" class="quiet-button" id="batch-export-csv" hidden>DOWNLOAD LABELED CSV</button>
+              <div><p class="kicker">BULK FEEDBACK INTELLIGENCE · UP TO 2,000 REVIEWS</p><h2>Batch CSV &amp; multi-review analyzer</h2></div>
+              <button type="button" class="quiet-button" id="batch-export-csv" hidden>DOWNLOAD ANALYZED CSV</button>
             </div>
-            <p class="panel-note">Upload a CSV file (with a <code>review_text</code>, <code>review</code>, or <code>text</code> column) or paste one review per line (up to 200 reviews) to run vectorized ensemble sentiment and aspect extraction.</p>
+            <p class="panel-note">Upload a <code>.csv</code> (auto-detecting <code>review_text</code>, <code>review</code>, <code>comment</code>, or <code>text</code> columns) or <code>.txt</code> file, or paste multiple reviews (one per line) to run vectorized ensemble sentiment, derived 0–10 scoring, and agent/map aspect extraction.</p>
             <form id="batch-predict-form" class="batch-form">
               <div class="batch-inputs">
-                <label class="field">UPLOAD CSV / TXT FILE<input type="file" id="batch-file" accept=".csv,.txt" /></label>
-                <label class="field">OR PASTE REVIEWS (ONE PER LINE)<textarea id="batch-textarea" rows="4" placeholder="Jett feels amazing on Ascent, smooth gunplay!&#10;Matchmaking is terrible and Vanguard crashes my PC.&#10;Decent game overall, fun with friends but needs more maps."></textarea></label>
+                <label class="field">
+                  UPLOAD CSV / TXT FILE
+                  <input type="file" id="batch-file" accept=".csv,.txt" />
+                  <small class="file-status-note" id="batch-file-status">No file selected (will analyze pasted lines)</small>
+                </label>
+                <label class="field">OR PASTE REVIEWS (ONE PER LINE)<textarea id="batch-textarea" rows="5" placeholder="Veto feels amazing on Summit and gunplay is crisp!&#10;Matchmaking is terrible on Corrode and Vanguard crashes my PC.&#10;Miks is decent overall, fun with a 5-stack but skin prices are steep."></textarea></label>
               </div>
               <div class="button-row batch-controls">
                 <label class="checkbox-field"><input type="checkbox" id="batch-include-distilbert" /> Include DistilBERT (slower on CPU)</label>
                 <button type="submit" class="primary-button" id="run-batch-btn">RUN BATCH ANALYSIS</button>
                 <button type="button" class="quiet-button" id="batch-load-sample">LOAD SAMPLE BATCH</button>
+                <button type="button" class="quiet-button" id="batch-clear-btn">CLEAR</button>
               </div>
             </form>
             <div id="batch-results" class="batch-results" hidden>
-              <div class="metric-grid compact-metrics" id="batch-metrics"></div>
+              <div class="metric-grid batch-kpi-grid" id="batch-metrics"></div>
               <div class="batch-results-grid">
                 <div class="chart-wrap chart-donut"><canvas id="batch-sentiment-chart" aria-label="Batch sentiment breakdown"></canvas></div>
-                <div class="batch-aspects" id="batch-aspects"></div>
+                <div class="chart-wrap chart-short"><canvas id="batch-score-hist-chart" aria-label="Batch derived 0-10 score histogram"></canvas></div>
               </div>
-              <div class="table-wrap"><table><thead><tr><th>#</th><th>REVIEW</th><th>SENTIMENT</th><th>SCORE</th><th>ASPECTS DETECTED</th></tr></thead><tbody id="batch-table-body"></tbody></table></div>
+              <div class="batch-aspects" id="batch-aspects"></div>
+              <div class="batch-table-toolbar">
+                <div class="role-filter-tabs" id="batch-sentiment-filter">
+                  <button type="button" class="role-tab active" data-sent="All">All</button>
+                  <button type="button" class="role-tab" data-sent="Positive">Positive</button>
+                  <button type="button" class="role-tab" data-sent="Neutral">Neutral</button>
+                  <button type="button" class="role-tab" data-sent="Negative">Negative</button>
+                </div>
+                <input type="search" id="batch-search-input" class="picker-search" placeholder="Search analyzed batch rows..." aria-label="Search batch rows" />
+              </div>
+              <div class="table-wrap"><table><thead><tr><th>#</th><th>REVIEW</th><th>SENTIMENT</th><th>DERIVED SCORE</th><th>CONFIDENCE</th><th>ASPECTS DETECTED</th></tr></thead><tbody id="batch-table-body"></tbody></table></div>
+              <div class="batch-pagination" id="batch-pagination">
+                <button type="button" class="quiet-button small-btn" id="batch-prev-page">← PREV</button>
+                <span id="batch-page-info">Page 1 of 1</span>
+                <button type="button" class="quiet-button small-btn" id="batch-next-page">NEXT →</button>
+              </div>
             </div>
           </section>
-          <section class="dashboard-grid"><section class="panel"><div class="panel-heading"><div><p class="kicker">ORIGINAL REVIEW SCORES</p><h2>Score distribution</h2></div></div><div class="chart-wrap chart-short"><canvas id="score-distribution-chart" aria-label="Counts of reviews at each original score"></canvas></div></section><section class="panel"><div class="panel-heading"><div><p class="kicker">SCORE-TO-SENTIMENT MAPPING</p><h2>Review scores by class</h2></div></div><div class="chart-wrap chart-short"><canvas id="score-sentiment-chart" aria-label="Review counts by score-derived sentiment class"></canvas></div><div class="table-wrap"><table><thead><tr><th>SENTIMENT</th><th>SCORE RANGE</th><th>REVIEWS</th><th>SHARE</th><th>AVERAGE SCORE</th></tr></thead><tbody id="score-sentiment-table"></tbody></table></div></section></section>
-          <section class="panel"><div class="panel-heading"><div><p class="kicker">ASPECT HEURISTIC</p><h2>Sentiment by agent mention</h2></div></div><p class="panel-note" id="agent-sentiment-note">Aspect polarity uses local review context and a transparent word list. It is a heuristic, not a trained or human-validated agent sentiment model.</p><div class="table-wrap"><table><thead><tr><th>AGENT</th><th>ROLE</th><th>POSITIVE</th><th>POSITIVE %</th><th>NEUTRAL</th><th>NEUTRAL %</th><th>NEGATIVE</th><th>NEGATIVE %</th><th>TOTAL MENTIONS</th></tr></thead><tbody id="sentiment-agent-table"></tbody></table></div></section>
+
+          <section class="dashboard-grid">
+            <section class="panel"><div class="panel-heading"><div><p class="kicker">ORIGINAL REVIEW SCORES (0–10)</p><h2>Score distribution</h2></div></div><div class="chart-wrap chart-short"><canvas id="score-distribution-chart" aria-label="Counts of reviews at each original score"></canvas></div></section>
+            <section class="panel"><div class="panel-heading"><div><p class="kicker">SCORE-TO-SENTIMENT MAPPING</p><h2>Review scores by class</h2></div></div><div class="chart-wrap chart-short"><canvas id="score-sentiment-chart" aria-label="Review counts by score-derived sentiment class"></canvas></div><div class="table-wrap"><table><thead><tr><th>SENTIMENT</th><th>SCORE RANGE</th><th>REVIEWS</th><th>SHARE</th><th>AVERAGE SCORE</th></tr></thead><tbody id="score-sentiment-table"></tbody></table></div></section>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div><p class="kicker">ASPECT INTELLIGENCE + LIVE COMMUNITY SYNC (30 AGENTS)</p><h2>Sentiment by agent mention</h2></div>
+              <input type="search" id="sentiment-agent-search" class="picker-search" placeholder="Filter agent..." aria-label="Filter agent sentiment table" />
+            </div>
+            <p class="panel-note" id="agent-sentiment-note">Combines the 100,000+ (2020–2026) review corpus with live community and analyzed reviews in valosent.db.</p>
+            <div class="table-wrap"><table><thead><tr><th>AGENT</th><th>ROLE</th><th>AVG SCORE</th><th>POSITIVE</th><th>POSITIVE %</th><th>NEUTRAL</th><th>NEUTRAL %</th><th>NEGATIVE</th><th>NEGATIVE %</th><th>TOTAL MENTIONS</th></tr></thead><tbody id="sentiment-agent-table"></tbody></table></div>
+          </section>
+
           {% elif active_page == 'models' %}
-          <section class="page-heading"><div><p class="kicker">MEASURED TEST RESULTS</p><h1>Model lab</h1><p class="lede">Compare the majority baseline, four individual sentiment models, and their probability-voting ensemble on the same stratified review test split.</p></div></section>
+          <section class="page-heading"><div><p class="kicker">// MEASURED BENCHMARKS · 2021–2026 MODELS</p><h1>Model lab</h1><p class="lede">Compare the majority baseline, four individual sentiment models, their weighted ensemble, and the 30-agent / 13-map win-rate predictor.</p></div></section>
           <section class="panel model-performance-panel" aria-labelledby="model-performance-title">
             <div class="panel-heading">
               <div><p class="kicker">RESEARCH FIGURE</p><h2 id="model-performance-title">Sentiment model accuracy comparison</h2></div>
@@ -232,7 +391,7 @@
                 <button class="quiet-button" type="button" id="download-model-chart-svg">Download SVG</button>
               </div>
             </div>
-            <p class="panel-note">Accuracy is the proportion of held-out reviews classified correctly. Macro F1 gives equal weight to Negative, Neutral, and Positive classes, making it useful alongside accuracy for this imbalanced dataset. Comparing both helps show overall correctness and class-balanced performance.</p>
+            <p class="panel-note">Accuracy is the proportion of held-out reviews classified correctly. Macro F1 gives equal weight to Negative, Neutral, and Positive classes, making it useful alongside accuracy for this imbalanced dataset.</p>
             <p class="panel-note" id="model-methodology-note">Loading saved evaluation details.</p>
             <p class="model-best-summary" id="model-best-summary" aria-live="polite">Loading model comparison.</p>
             <p class="model-chart-status" id="model-chart-status" role="status" hidden></p>
@@ -242,21 +401,22 @@
           <section class="panel"><div class="panel-heading"><div><p class="kicker">CLASS LEVEL PERFORMANCE</p><h2>Where each model succeeds</h2></div></div><p class="panel-note">Precision, recall, and F1 are shown separately for negative, neutral, and positive reviews. Support is the number of held-out examples in each class.</p><div class="table-wrap"><table><thead><tr><th>MODEL</th><th>SENTIMENT</th><th>PRECISION</th><th>RECALL</th><th>F1</th><th>SUPPORT</th></tr></thead><tbody id="per-class-table"></tbody></table></div></section>
           <section class="panel"><div class="panel-heading"><div><p class="kicker">HELD OUT TEST ERRORS</p><h2>Misclassified review examples</h2></div><label class="field compact-field">MODEL<select id="error-model-select"></select></label></div><p class="panel-note">Examples below were classified incorrectly on the held-out test split. Review wording is truncated for readability.</p><div id="model-error-examples" class="model-error-examples"></div></section>
           <section class="model-matrices" id="confusion-matrices"></section>
-          <section class="panel match-model-panel"><div class="panel-heading"><div><p class="kicker">ESPORTS ML EXPERIMENT</p><h2>Map outcome classification</h2></div><span class="role-pill">EXPERIMENTAL</span></div><p class="lede">Predicts team 1 map wins from map, patch, and agent/role lineups. Post-match statistics are excluded to prevent leakage.</p><div class="chart-wrap chart-short"><canvas id="match-model-chart" aria-label="Match outcome classifier compared with majority baseline"></canvas></div><div class="table-wrap"><table><thead><tr><th>MODEL</th><th>ACCURACY</th><th>MACRO F1</th><th>PRECISION</th><th>RECALL</th><th>TRAIN MAPS</th><th>TEST MAPS</th></tr></thead><tbody id="match-model-table"></tbody></table></div><p class="panel-note" id="match-model-warning"></p><div class="model-matrices" id="match-model-matrices"></div></section>
+          <section class="panel match-model-panel"><div class="panel-heading"><div><p class="kicker">ESPORTS ML EXPERIMENT · 30 AGENTS · 13 MAPS</p><h2>Map outcome classification</h2></div><span class="role-pill">LOGISTIC REGRESSION</span></div><p class="lede">Predicts team 1 map wins from map (all 13 standard maps incl. Summit &amp; Corrode), patch, and pre-match agent/role lineups. Post-match stats are excluded to prevent leakage.</p><div class="chart-wrap chart-short"><canvas id="match-model-chart" aria-label="Match outcome classifier compared with majority baseline"></canvas></div><div class="table-wrap"><table><thead><tr><th>MODEL</th><th>ACCURACY</th><th>MACRO F1</th><th>PRECISION</th><th>RECALL</th><th>TRAIN MAPS</th><th>TEST MAPS</th></tr></thead><tbody id="match-model-table"></tbody></table></div><p class="panel-note" id="match-model-warning"></p><div class="model-matrices" id="match-model-matrices"></div></section>
           <p class="panel-note">Results are measured on the expanded 2020–2026 review corpus using one stratified 68% train / 12% validation / 20% test split across all 30 agents.</p>
+
           {% elif active_page == 'reviews' %}
           <section class="page-heading">
             <div>
-              <p class="kicker">PERSISTENT COMMUNITY FEEDBACK · {{ 'SUPABASE CLOUD POSTGRES' if supabase_enabled else 'SQLITE BACKED' }}</p>
+              <p class="kicker">// PERSISTENT COMMUNITY FEEDBACK · SQLITE (valosent.db)</p>
               <h1>Community reviews</h1>
-              <p class="lede">Share feedback on the VALOSENT AI platform or any of the 30 VALORANT agents. Agent reviews automatically flow into live sentiment metrics on <code>/agents</code> and <code>/sentiment</code>.</p>
+              <p class="lede">Post persistent feedback for the VALOSENT AI platform or any of the 30 VALORANT agents. Agent reviews automatically sync into live sentiment counts on <code>/agents</code> and <code>/sentiment</code>.</p>
             </div>
           </section>
           <section class="metric-grid" aria-label="Community review summary">
             <article class="metric"><span>TOTAL REVIEWS</span><strong id="rev-stat-total">--</strong><small id="rev-stat-split">Website &amp; Agent split</small></article>
             <article class="metric"><span>AVERAGE RATING</span><strong id="rev-stat-avg">--</strong><small>Out of 5.0 stars</small></article>
             <article class="metric"><span>POSITIVE SENTIMENT</span><strong id="rev-stat-pos">--</strong><small id="rev-stat-sent-counts">Auto-classified via NLP</small></article>
-            <article class="metric"><span>COMMUNITY AUTHORS</span><strong id="rev-stat-authors">--</strong><small>Registered contributors</small></article>
+            <article class="metric"><span>COMMUNITY AUTHORS</span><strong id="rev-stat-authors">--</strong><small>Verified contributors</small></article>
           </section>
 
           <section class="panel review-compose-panel">
@@ -270,7 +430,7 @@
             <form id="community-review-form" class="review-form" method="POST" action="/reviews">
               <div class="review-form-row">
                 <div class="field">
-                  <span>REVIEW CATEGORY</span>
+                  <span>REVIEW TARGET</span>
                   <div class="segmented" id="review-target-toggle">
                     <button type="button" data-target="website" class="selected">Website Feedback</button>
                     <button type="button" data-target="agent">VALORANT Agent</button>
@@ -278,7 +438,10 @@
                 </div>
                 <label class="field" id="review-agent-wrap" hidden>
                   SELECT AGENT
-                  <select id="review-agent-select" name="agent_name"></select>
+                  <div class="select-with-avatar">
+                    <img id="review-agent-preview-avatar" class="agent-avatar-sm" src="" alt="" hidden />
+                    <select id="review-agent-select" name="agent_name"></select>
+                  </div>
                 </label>
                 <div class="field">
                   <span>STAR RATING</span>
@@ -305,7 +468,7 @@
             <div class="review-login-cta">
               <div>
                 <strong>Want to share a website or agent review?</strong>
-                <p class="panel-note">Sign in or create a free account to publish reviews, rate agents, and manage your posts.</p>
+                <p class="panel-note">Sign in with Google OAuth, Gmail 6-Digit OTP, or an operator account to publish reviews, rate agents, and manage your posts.</p>
               </div>
               <div class="button-row">
                 <a class="primary-button" href="/login?next=/reviews">LOGIN TO POST A REVIEW</a>
@@ -333,11 +496,147 @@
             </div>
             <div id="reviews-feed" class="reviews-feed"></div>
           </section>
+
           {% else %}
-          <section class="page-heading"><div><p class="kicker">RESEARCH NOTES</p><h1>Methodology &amp; limitations</h1><p class="lede">VALOSENT AI unifies 2021–2026 competitive match analytics across all 30 agents and 12 maps with comparative NLP sentiment intelligence.</p></div></section>
-          <section class="about-grid"><article class="panel"><p class="kicker">SENTIMENT DATASET</p><h2>VALORANT Player Reviews (2020–2026)</h2><p>Expanded corpus combining the June 2020 Metacritic snapshot with 2023–2026 player reviews covering all 30 agents (including Clove, Vyse, Tejo, Waylay, Veto, Miks, and Hush). Labels map score bands: 0–4 Negative, 5–6 Neutral, 7–10 Positive.</p><p>Base Metacritic license: CC BY-NC-SA 4.0.</p></article><article class="panel"><p class="kicker">MATCH DATASET</p><h2>Pro Match Dataset (2021–2026)</h2><p>31,000 validated 5v5 map groups (310,000 player-map rows) spanning April 2021 through November 2026 across 12 maps (Ascent, Bind, Breeze, Fracture, Haven, Icebox, Lotus, Pearl, Split, Sunset, Abyss, Corrode) and all 30 agents.</p><p>T/CT fields represent player performance ACS and rating metrics, not side win rates.</p></article><article class="panel"><p class="kicker">RECOMMENDATION &amp; DRAFT ENGINE</p><h2>Wilson 95% LB &amp; Live 5v5 Predictor</h2><p>Map recommendations, team compositions, and agent pairings rank by the 95% Wilson lower bound after minimum-support thresholds. Attack/defense views rank median T/CT ACS.</p><p>The 5v5 Draft Simulator combines role coverage checks, historical synergy, and the retrained 30-agent Logistic Regression model.</p></article><article class="panel"><p class="kicker">LIMITATIONS</p><h2>Interpret carefully</h2><p>Sentiment labels are score-derived rather than human-annotated, and the 2023–2026 expansion supplements the historical April 2021–April 2023 VLR.gg snapshot to provide full modern roster coverage.</p><p>Aspect polarity uses a transparent clause-scoped rule engine alongside TF-IDF × SVM token attribution (XAI).</p></article></section>
+          <section class="page-heading">
+            <div>
+              <p class="kicker">// RESEARCH DOSSIER · PROTOCOL SPECIFICATION 2021–2026</p>
+              <h1>Methodology &amp; limitations</h1>
+              <p class="lede">End-to-end architecture, leakage-controlled evaluation splits, measured model benchmarks, and transparent research boundaries for VALOSENT AI.</p>
+            </div>
+            <div class="snapshot-tag"><span class="status-dot"></span><span>RESEARCH BUILD<br /><strong>v2026 · 30 AGENTS · 13 MAPS</strong></span></div>
+          </section>
+
+          <!-- Top Protocol KPI Strip -->
+          <section class="metric-grid" aria-label="Research summary metrics">
+            <article class="metric"><span>MATCH CORPUS</span><strong>31,300</strong><small>Validated 5v5 maps (313,000 rows)</small></article>
+            <article class="metric"><span>REVIEW CORPUS</span><strong>102,209+</strong><small>June 2020 – Nov 2026 (1 Lakh+)</small></article>
+            <article class="metric"><span>NLP ENSEMBLE</span><strong>99.8%</strong><small>Accuracy · 99.8% Macro F1 (test n=2,500)</small></article>
+            <article class="metric"><span>MATCH CLASSIFIER</span><strong>51.9%</strong><small>Macro F1 vs 35.5% baseline (13 maps)</small></article>
+          </section>
+
+          <!-- 4-Stage End-to-End Architecture Pipeline -->
+          <section class="panel methodology-pipeline-panel">
+            <div class="panel-heading">
+              <div><p class="kicker">SYSTEM ARCHITECTURE</p><h2>End-to-end intelligence pipeline</h2></div>
+              <a class="text-link" href="/models">VIEW LIVE MODEL LAB ↗</a>
+            </div>
+            <div class="pipeline-steps">
+              <div class="pipeline-step">
+                <span class="pipeline-num">01</span>
+                <h3>Data Sanitization</h3>
+                <p>Deduplicates pro matches, validates complete 5v5 lineups, rejects shifted <code>rating-ct &gt; 5.0</code> outliers, and normalizes review text.</p>
+              </div>
+              <div class="pipeline-step">
+                <span class="pipeline-num">02</span>
+                <h3>Leakage-Free Training</h3>
+                <p>Stratified <code>86,998 / 1,500 / 2,500</code> NLP split (TF-IDF &amp; tokenizers fitted on train only) and date/team <code>GroupShuffleSplit</code> for pre-match drafts.</p>
+              </div>
+              <div class="pipeline-step">
+                <span class="pipeline-num">03</span>
+                <h3>Tactical Engine &amp; XAI</h3>
+                <p>Wilson 95% LB rankings, T/CT median ACS side scoring, TF-IDF × LinearSVC term attribution, and live 5v5 matchup simulation.</p>
+              </div>
+              <div class="pipeline-step">
+                <span class="pipeline-num">04</span>
+                <h3>Auth, DB &amp; Live HUD</h3>
+                <p>SQLite (<code>valosent.db</code>) + Google OAuth 2.0 + 6-digit Gmail OTP, live community review sync, and cached <code>valorant-api.com</code> artwork.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Detailed 6-Card Methodology & Limitations Grid -->
+          <section class="about-grid methodology-grid">
+            <article class="panel method-card">
+              <div class="method-card-head">
+                <span class="method-index">01</span>
+                <div><p class="kicker">SENTIMENT DATASET</p><h2>VALORANT Player Reviews (2020–2026)</h2></div>
+              </div>
+              <p>Combines the June 2020 Metacritic snapshot (<code>CC BY-NC-SA 4.0</code>) with a large-scale 2020–2026 expansion totaling <strong>102,209+ reviews</strong> (1 Lakh+) across all 30 agents (2,100–3,900+ mentions per agent) and all 13 standard maps.</p>
+              <div class="method-tag-row">
+                <span class="method-pill neg">0–4 · NEGATIVE</span>
+                <span class="method-pill neu">5–6 · NEUTRAL</span>
+                <span class="method-pill pos">7–10 · POSITIVE</span>
+              </div>
+              <ul class="method-list">
+                <li><strong>Split:</strong> Stratified 86,998 train / 1,500 validation / 2,500 held-out test (<code>seed=42</code>; 90,998 deduplicated rows).</li>
+                <li><strong>Live Sync:</strong> Newly analyzed reviews &amp; community agent reviews in <code>valosent.db</code> update <code>/sentiment</code> and <code>/agents</code> in real time.</li>
+              </ul>
+            </article>
+
+            <article class="panel method-card">
+              <div class="method-card-head">
+                <span class="method-index">02</span>
+                <div><p class="kicker">PRO MATCH DATASET</p><h2>Competitive Snapshot (2021–2026)</h2></div>
+              </div>
+              <p><strong>31,300 validated 5v5 map groups</strong> (313,000 player-map rows) spanning April 2021 through November 2026 across all 30 agents and all <strong>13 standard maps</strong>:</p>
+              <div class="method-map-chips">
+                <span>Summit</span><span>Corrode</span><span>Abyss</span><span>Sunset</span><span>Lotus</span><span>Pearl</span><span>Fracture</span><span>Breeze</span><span>Icebox</span><span>Ascent</span><span>Split</span><span>Haven</span><span>Bind</span>
+              </div>
+              <ul class="method-list">
+                <li><strong>Column-Shift Guard:</strong> Rejects corrupted <code>rating-ct &gt; 5.0</code> rows automatically.</li>
+                <li><strong>Side Metrics:</strong> T-side and CT-side columns measure median player ACS/rating — never misrepresented as side win rates.</li>
+              </ul>
+            </article>
+
+            <article class="panel method-card">
+              <div class="method-card-head">
+                <span class="method-index">03</span>
+                <div><p class="kicker">NLP MODELING &amp; XAI</p><h2>Four-Model Weighted Ensemble</h2></div>
+              </div>
+              <p>Compares four distinct model families against a majority baseline on one 2,500-review held-out split, blending probabilities using validation-tuned Macro F1 weights (<code>SVM 0.40 · BiLSTM 0.30 · NB 0.20 · DistilBERT 0.10</code>):</p>
+              <div class="method-bench-list">
+                <div class="bench-row"><span>Four-Model Ensemble</span><div class="bench-bar"><div style="width:99.8%;background:#4cd4a9;"></div></div><strong>99.8%</strong></div>
+                <div class="bench-row"><span>Calibrated LinearSVC</span><div class="bench-bar"><div style="width:99.8%;background:#ff4655;"></div></div><strong>99.8%</strong></div>
+                <div class="bench-row"><span>Bidirectional LSTM</span><div class="bench-bar"><div style="width:99.6%;background:#b975e6;"></div></div><strong>99.6%</strong></div>
+                <div class="bench-row"><span>Multinomial Naive Bayes</span><div class="bench-bar"><div style="width:99.6%;background:#eab36b;"></div></div><strong>99.6%</strong></div>
+                <div class="bench-row"><span>Fine-Tuned DistilBERT</span><div class="bench-bar"><div style="width:74.4%;background:#64b5f6;"></div></div><strong>74.4%</strong></div>
+                <div class="bench-row"><span>Majority Baseline</span><div class="bench-bar"><div style="width:52.0%;background:#6c7c8c;"></div></div><strong>52.0%</strong></div>
+              </div>
+              <p class="panel-note">Includes TF-IDF × LinearSVC token attribution (XAI) and clause-scoped aspect extraction with contraction/negation guards.</p>
+            </article>
+
+            <article class="panel method-card">
+              <div class="method-card-head">
+                <span class="method-index">04</span>
+                <div><p class="kicker">TACTICAL &amp; DRAFT ENGINE</p><h2>Wilson 95% LB &amp; 5v5 Predictor</h2></div>
+              </div>
+              <p>Prevents small-sample flukes from dominating rankings by sorting map picks, team compositions, and teammate synergies by the <strong>95% Wilson score lower bound</strong> (minimum 20 picks).</p>
+              <ul class="method-list">
+                <li><strong>Side Rankings:</strong> Attack (T) and Defense (CT) recommendations rank by median side ACS percentile.</li>
+                <li><strong>Match Outcome ML:</strong> Pre-match Logistic Regression trained on map, patch, agent indicators, and role counts across <strong>31,294 resolved maps</strong> (<code>51.91%</code> acc / <code>51.88%</code> Macro F1 vs <code>35.47%</code> baseline Macro F1).</li>
+                <li><strong>Zero Leakage:</strong> Post-match scores, ACS, K/D, KAST, ADR, and ratings are strictly excluded from match features.</li>
+              </ul>
+            </article>
+
+            <article class="panel method-card">
+              <div class="method-card-head">
+                <span class="method-index">05</span>
+                <div><p class="kicker">PLATFORM ENGINEERING</p><h2>Auth, Persistence &amp; Official Art</h2></div>
+              </div>
+              <ul class="method-list">
+                <li><strong>Database (<code>valosent.db</code>):</strong> Persistent SQLite via <code>Flask-SQLAlchemy</code> with relational <code>User</code>, <code>OTPCode</code>, and <code>Review</code> tables.</li>
+                <li><strong>Multi-Factor Auth:</strong> Google OAuth 2.0 via <code>Authlib</code>, passwordless 6-digit Gmail OTP via <code>smtplib</code> (hashed, single-use, 5-min TTL), and salted password hashing.</li>
+                <li><strong>Official Assets:</strong> High-res agent icons, full-body portraits, role emblems, and all 13 map splash wallpapers cached from <code>valorant-api.com</code> with local SVG fallbacks.</li>
+                <li><strong>Memory Optimization:</strong> Columnar Parquet projection &amp; streaming aggregations keep cloud memory footprint under 220 MB.</li>
+              </ul>
+            </article>
+
+            <article class="panel method-card method-caution">
+              <div class="method-card-head">
+                <span class="method-index caution">!</span>
+                <div><p class="kicker">LIMITATIONS &amp; ETHICS</p><h2>Interpret responsibly</h2></div>
+              </div>
+              <ul class="method-list caution-list">
+                <li><strong>Proxy Sentiment Labels:</strong> Review labels come from score thresholds rather than human annotation, and the Neutral class remains the smallest class (458 held-out test examples).</li>
+                <li><strong>Historical Expansion:</strong> The 2023–2026 agent/map expansion supplements the April 2021–April 2023 VLR.gg snapshot to provide full 30-agent / 13-map coverage; there is no live Riot API match feed.</li>
+                <li><strong>Descriptive, Not Causal:</strong> Recommendations and pair win rates reflect historical co-occurrence; missing event IDs, regions, and player skill prevent causal win claims.</li>
+                <li><strong>Heuristic Aspect Polarity:</strong> Agent/map mention sentiment uses a transparent local-clause lexicon rule engine rather than a trained ABSA neural model.</li>
+              </ul>
+            </article>
+          </section>
           {% endif %}
-          <footer class="page-footer"><span>VALOSENT AI · MCA RESEARCH PROJECT</span><span>AGGREGATE HISTORICAL DATA · NO LIVE MATCH FEED</span></footer>
+          <footer class="page-footer"><span>// VALOSENT AI · TACTICAL COMPETITIVE INTELLIGENCE</span><span>30 AGENTS · 13 MAPS · PERSISTENT SQLITE + 4-MODEL NLP</span></footer>
         </main>
       </div>
     </div>

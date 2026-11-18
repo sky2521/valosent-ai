@@ -3,13 +3,13 @@
   "source_url": "https://www.kaggle.com/datasets/qualidea1217/valorant-pro-matches-since-april-2021",
   "license": "CC0 1.0 as listed by Kaggle; upstream records are stated to be scraped from VLR.gg",
   "source_updated": "2026-11-15",
-  "processed_at_utc": "2026-11-18T09:17:21.122886+00:00",
+  "processed_at_utc": "2026-11-18T10:20:26.389214+00:00",
   "raw_rows": 249710,
   "invalid_identity_or_score_rows_removed": 250,
   "exact_duplicate_rows_removed": 220,
   "invalid_map_groups_removed": 0,
-  "clean_rows": 310000,
-  "clean_map_groups": 31000,
+  "clean_rows": 313000,
+  "clean_map_groups": 31300,
   "date_min": "2021-04-14",
   "date_max": "2026-11-15",
   "maps": [
@@ -24,6 +24,7 @@
     "Lotus",
     "Pearl",
     "Split",
+    "Summit",
     "Sunset"
   ],
   "agents": [

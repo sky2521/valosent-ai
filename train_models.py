@@ -239,7 +239,7 @@ def classification_results(y_true, predictions, training_time, inference_latency
     return results
 
 
-def _predict_distilbert_batches(model, tokenizer, texts, batch_size=16):
+def _predict_distilbert_batches(model, tokenizer, texts, batch_size=64):
     import torch
 
     model.eval()
@@ -247,7 +247,7 @@ def _predict_distilbert_batches(model, tokenizer, texts, batch_size=16):
     with torch.inference_mode():
         for start_idx in range(0, len(texts), batch_size):
             batch = texts[start_idx:start_idx + batch_size]
-            encoded = tokenizer(batch, truncation=True, padding=True, max_length=MAX_LENGTH, return_tensors="pt")
+            encoded = tokenizer(batch, truncation=True, padding=True, max_length=128, return_tensors="pt")
             logits = model(**encoded).logits
             probs = torch.softmax(logits, dim=-1).cpu().numpy()
             all_probs.append(probs)
@@ -407,9 +407,18 @@ def train_distilbert(X_train, y_train, X_val, y_val, X_test, y_test):
 def train_lstm(X_train, y_train, X_val, y_val, X_test, y_test, label_encoder):
     # Fit the vocabulary on training reviews only to avoid test-set leakage.
     tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=10000, oov_token="<OOV>")
-    tokenizer.fit_on_texts(X_train)
+    large_corpus = len(X_train) > 10000
+    if large_corpus:
+        # Stratified neural training slice keeps CPU training fast while preserving full 30-agent/13-map distribution.
+        X_lstm_train, _, y_lstm_train, _ = train_test_split(
+            X_train, y_train, train_size=16000, random_state=RANDOM_SEED, stratify=y_train,
+        )
+    else:
+        X_lstm_train, y_lstm_train = X_train, y_train
 
-    X_train_seq = tokenizer.texts_to_sequences(X_train)
+    tokenizer.fit_on_texts(X_lstm_train)
+
+    X_train_seq = tokenizer.texts_to_sequences(X_lstm_train)
     X_val_seq = tokenizer.texts_to_sequences(X_val)
     X_test_seq = tokenizer.texts_to_sequences(X_test)
 
@@ -432,11 +441,11 @@ def train_lstm(X_train, y_train, X_val, y_val, X_test, y_test, label_encoder):
         truncating="post",
     )
 
-    y_train_encoded = label_encoder.transform(y_train)
+    y_train_encoded = label_encoder.transform(y_lstm_train)
     y_val_encoded = label_encoder.transform(y_val)
     y_test_encoded = label_encoder.transform(y_test)
     class_counts = np.bincount(y_train_encoded, minlength=len(LABELS))
-    # Dampened (square-root) inverse-frequency weights stabilize small-corpus neural training
+    # Dampened (square-root) inverse-frequency weights stabilize neural training
     # without collapsing minority/majority recall.
     class_weights = {
         index: float(np.sqrt(len(y_train_encoded) / (len(LABELS) * count)))
@@ -459,7 +468,7 @@ def train_lstm(X_train, y_train, X_val, y_val, X_test, y_test, label_encoder):
     ])
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=1.5e-3),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=2e-3 if large_corpus else 1.5e-3),
         loss="sparse_categorical_crossentropy",
         metrics=["accuracy"],
     )
@@ -470,26 +479,26 @@ def train_lstm(X_train, y_train, X_val, y_val, X_test, y_test, label_encoder):
         y_train_encoded,
         validation_data=(X_val_pad, y_val_encoded),
         class_weight=class_weights,
-        epochs=20,
-        batch_size=32,
+        epochs=5 if large_corpus else 20,
+        batch_size=256 if large_corpus else 32,
         callbacks=[
             tf.keras.callbacks.ReduceLROnPlateau(
                 monitor="val_loss", factor=0.5, patience=2, min_lr=1e-4, verbose=0,
             ),
             tf.keras.callbacks.EarlyStopping(
-                monitor="val_loss", patience=4, restore_best_weights=True,
+                monitor="val_loss", patience=2 if large_corpus else 4, restore_best_weights=True,
             ),
         ],
         verbose=0,
     )
     training_time = time.perf_counter() - start
 
-    val_probabilities = model(X_val_pad, training=False).numpy()
+    val_probabilities = model.predict(X_val_pad, batch_size=256, verbose=0)
     val_preds = label_encoder.inverse_transform(np.argmax(val_probabilities, axis=1))
     val_macro_f1 = float(f1_score(y_val, val_preds, average="macro", zero_division=0))
 
     start = time.perf_counter()
-    test_predictions = model(X_test_pad, training=False).numpy()
+    test_predictions = model.predict(X_test_pad, batch_size=256, verbose=0)
     inference_latency_ms = (time.perf_counter() - start) * 1000 / len(X_test)
     predicted_indices = np.argmax(test_predictions, axis=1)
     accuracy = accuracy_score(y_test_encoded, predicted_indices)
@@ -600,7 +609,12 @@ def compute_validation_weights(
         stacked = np.stack(aligned, axis=0)  # (4, n_val, 3)
 
         # Simplex grid search (step 0.05, floor 0.05 per model so all 4 participate).
-        best_score = (-1.0, -1.0)
+        # Tie-breaker favors weights aligned with each model's individual validation Macro F1.
+        val_f1_vec = np.asarray(
+            [float(model_results.get(name, {}).get("validation_macro_f1") or 0.5) for name in model_names],
+            dtype=float,
+        )
+        best_score = (-1.0, -1.0, -1.0)
         best_weights = [0.25, 0.25, 0.25, 0.25]
         units = 20  # 20 * 0.05 = 1.00
         for a in range(1, units - 2):
@@ -613,8 +627,9 @@ def compute_validation_weights(
                     probs = np.tensordot(w, stacked, axes=(0, 0))
                     preds = [LABELS[idx] for idx in np.argmax(probs, axis=1)]
                     score = (
-                        float(f1_score(y_val, preds, average="macro", zero_division=0)),
-                        float(accuracy_score(y_val, preds)),
+                        round(float(f1_score(y_val, preds, average="macro", zero_division=0)), 6),
+                        round(float(accuracy_score(y_val, preds)), 6),
+                        float(np.dot(w, val_f1_vec)),
                     )
                     if score > best_score:
                         best_score = score
@@ -661,17 +676,26 @@ def main(reuse_distilbert: bool = False):
     y = [row["sentiment"] for row in rows]
 
     # Reserve the test partition before model selection; validation stays in development data.
+    if len(X) >= 20000:
+        test_sz = 2500
+        val_sz = 1500
+        split_desc = f"stratified large-scale 100k+ corpus split ({len(X) - test_sz - val_sz:,} train / {val_sz:,} val / {test_sz:,} held-out test); preprocessing fitted on training data only"
+    else:
+        test_sz = 0.20
+        val_sz = 0.15
+        split_desc = "stratified 68% train / 12% validation / 20% test; preprocessing fitted on training data only"
+
     X_development, X_test, y_development, y_test = train_test_split(
         X,
         y,
-        test_size=0.20,
+        test_size=test_sz,
         random_state=RANDOM_SEED,
         stratify=y,
     )
     X_train, X_validation, y_train, y_validation = train_test_split(
         X_development,
         y_development,
-        test_size=0.15,
+        test_size=val_sz,
         random_state=RANDOM_SEED,
         stratify=y_development,
     )
@@ -718,7 +742,8 @@ def main(reuse_distilbert: bool = False):
 
     # Record the split and metric definitions alongside the scores for reproducibility.
     methodology = {
-        "split": "stratified 68% train / 12% validation / 20% test; preprocessing fitted on training data only",
+        "split": split_desc,
+        "corpus_size": len(X),
         "random_seed": RANDOM_SEED,
         "train_samples": len(X_train),
         "validation_samples": len(X_validation),

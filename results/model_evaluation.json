@@ -5,18 +5,19 @@
     "Positive"
   ],
   "methodology": {
-    "split": "stratified 68% train / 12% validation / 20% test; preprocessing fitted on training data only",
+    "split": "stratified large-scale 100k+ corpus split (86,998 train / 1,500 val / 2,500 held-out test); preprocessing fitted on training data only",
+    "corpus_size": 90998,
     "random_seed": 42,
-    "train_samples": 846,
-    "validation_samples": 150,
-    "test_samples": 250,
+    "train_samples": 86998,
+    "validation_samples": 1500,
+    "test_samples": 2500,
     "distilbert_status": "trained",
     "ensemble_strategy": "validation_macro_f1_weighted",
     "ensemble_weights": {
-      "SVM": 0.05,
-      "Naive Bayes": 0.35,
-      "LSTM": 0.1,
-      "DistilBERT": 0.5
+      "SVM": 0.4,
+      "Naive Bayes": 0.2,
+      "LSTM": 0.3,
+      "DistilBERT": 0.1
     },
     "macro_f1": "unweighted mean of per-class F1; gives each sentiment class equal importance",
     "weighted_f1": "mean of per-class F1 weighted by class support",
@@ -24,1007 +25,712 @@
   },
   "models": {
     "Majority baseline": {
-      "accuracy": 0.448,
-      "training_time_seconds": 0.0005719000000681262,
-      "inference_latency_ms_per_review": 0.00039600000309292227,
-      "test_samples": 250,
+      "accuracy": 0.5196,
+      "training_time_seconds": 0.050314200001594145,
+      "inference_latency_ms_per_review": 5.651999963447451e-05,
+      "test_samples": 2500,
       "validation_macro_f1": null,
       "classification_report": {
         "Negative": {
           "precision": 0.0,
           "recall": 0.0,
           "f1-score": 0.0,
-          "support": 110.0
+          "support": 743.0
         },
         "Neutral": {
           "precision": 0.0,
           "recall": 0.0,
           "f1-score": 0.0,
-          "support": 28.0
+          "support": 458.0
         },
         "Positive": {
-          "precision": 0.448,
+          "precision": 0.5196,
           "recall": 1.0,
-          "f1-score": 0.6187845303867403,
-          "support": 112.0
+          "f1-score": 0.6838641747828376,
+          "support": 1299.0
         },
-        "accuracy": 0.448,
+        "accuracy": 0.5196,
         "macro avg": {
-          "precision": 0.14933333333333335,
+          "precision": 0.1732,
           "recall": 0.3333333333333333,
-          "f1-score": 0.20626151012891344,
-          "support": 250.0
+          "f1-score": 0.2279547249276125,
+          "support": 2500.0
         },
         "weighted avg": {
-          "precision": 0.20070400000000002,
-          "recall": 0.448,
-          "f1-score": 0.27721546961325966,
-          "support": 250.0
+          "precision": 0.26998416,
+          "recall": 0.5196,
+          "f1-score": 0.3553358252171624,
+          "support": 2500.0
         }
       },
       "confusion_matrix": [
         [
           0,
           0,
-          110
+          743
         ],
         [
           0,
           0,
-          28
+          458
         ],
         [
           0,
           0,
-          112
+          1299
         ]
       ],
       "error_examples": [
         {
-          "text": "i don t know why but i was expecting more maybe is because the game is new but it doesn t have much originality",
+          "text": "worst episode so far tejo utility spam on summit ruins clean gunfights utility timing feels clunky and the nerf stripped away what made the initiator kit viable needs an urgent hotfix before ranked is playable again",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "reyna feels frustrating and broken on icebox playing against reyna right now is awful and matchmaking feels terrible",
+          "text": "reyna is annoying and poorly tuned on fracture ranked lobbies feel cooked lately ability visual clutter makes holding angles painful and punishes pure aim duels hard to recommend in its current state",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "harbor is annoying and poorly tuned on abyss between toxic lobbies and buggy hitreg ranked feels cooked lately",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "cs go clone with lol and overwatch theme counter strike is way better in my opinion edit i m gonna expand this review a little bit by comparing this to cs go lol and overwatch the graphics are worse than in counter strike to win the round you gotta plant defuse the bomb the same as cs go it s a v match like in league and cs you have spells similiar to the ones in lol and ov and way less angry russians in the voice chat pretty disappointing ngl",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "disappointed with reyna in this episode reyna feels awful to play on fracture and matchmaking balance is bad",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "this game is nothing but chinese spyware repackaged as a crap cs go this is now characters or more",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "it s a copy of csgo and overwatch lol and the gameplay is purely trash the characters look stupid and the graphics look like a game from",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "very raw game mm is broken graphics is still back does not worth your time",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "boring weapons boring heros boring maps boring leveling up system and definitely a boring game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "half counterstrike half overwatch a little bit anticheat program which players make insane",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "slow boring smooth yet somehow clunky the guns feel janky honestly it could have been made better in gary s mod i hope they fix it",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i really really wanted to love valorant for i am looking for a game that is like csgo but isn t csgo well sadly riots game is not that i have been reinforced in my believes that abilities have no place in shooters not to mention in defusal game modes especially when said abilities replace utility leaving some characters without the tools to deal with a specific situation while others have such a strong toolkit that its outright unfair which defeats the competitive point imo you have a guy like c",
+          "text": "fairly balanced sentinel gameplay with sage on corrode just a bit repetitive over time the core shooting feels good yet smurf accounts in silver hold back the climb right in the middle for me this act",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "i have spent hundreds of ours in cs go overwatch rainbow six siege this was a horrible experience for me so far the game isn t unique in anyway the gameplay feels cluncky and beta like there is zero charm in the characters and don t get me on the skin prices",
+          "text": "uninstalled after a week of gold on fracture awful ping and buggy vanguard popups toxicity in voice chat is awful and the reporting system rarely feels responsive hard to recommend in its current state",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "without a choice of maps the game is unplayable i m tired of playing only on ascent",
+          "text": "tried maining jett in premier on breeze but toxic teammates and hitreg killed the fun utility timing feels clunky and the nerf stripped away what made the duelist kit viable easily the most frustrating stretch since launch",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "ascent plays fine with phoenix however the battle pass and skin prices stay steep performance is generally smooth though occasional ping spikes still show up on weekends hoping the next patch smooths out matchmaking",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "i was genuinely very excited for this game it felt like it had so much to offer and so much potential now after playing it after it was released i felt like the game was extremely boring and unoriginal the maps are incredibly mundane and lacks any polish that cs go has the round matches are so tedious and bland sorry but i m gonna pass on this game",
+          "text": "worst episode so far jett utility spam on haven ruins clean gunfights vanguard anti cheat errors forced multiple restarts and gave me an unfair queue dodge penalty taking a break until matchmaking and balance improve",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "this game is trash because if you want a fast game and talent hero game play you can go ow if you want slower game play and hardcore you go to play csgo among two of them is rainbow six siege and all of this have a better graphic than valorant we need a game to play not the cartoon which i can press button and every year instead of updates in game play riots only making bull like mv punish streamers and players because of free speak like in lol we dont want a world tournament which the mcs and c",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "played jett across several abyss games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
+          "text": "reyna sits in an average spot on ascent right now fine in stacks tricky solo some games have great comms and tight rounds while others swing wildly in skill gap hoping the next patch smooths out matchmaking",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "personally i just find it boring this was not ready to be launched they should actually go back to the closed beta when it launched the battle pass was broken the missions were broken queues filled with afk and leavers you can get randomly permabanned for no reason while actual cheaters get nothing also dollar skins seriously what the heck is going on with this game i wanted to love it so badly i wanted it to be my next addiction the next big game that i play but it launches no one talks about i",
+          "text": "playing against neon on abyss feels broken and completely unfair after utility timing feels clunky and the nerf stripped away what made the duelist kit viable really disappointing direction for competitive play",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "playing against viper on sunset feels broken and completely unfair after one sided stomp matches make sunset miserable to defend without a full stack easily the most frustrating stretch since launch",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "terrible matchmaking experience on abyss deadlock feels overtuned in tight chokes utility timing feels clunky and the nerf stripped away what made the sentinel kit viable terrible experience for solo queue players",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "tried maining deadlock in immortal on abyss but toxic teammates and hitreg killed the fun hitreg feels inconsistent servers rubber band mid gunfight and packet loss spikes randomly hope the next act actually fixes server stability",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "played tejo across diamond matches on corrode core mechanics are okay nothing crazy fun in short sessions while long ranked grinds can feel tiring without a stack enjoyable with a squad average in solo queue",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "really hate the state of neon after the patch neon feels weak on ascent and the servers have been laggy",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "vanguard smashing your computer graphics below the level it makes so much company profit but its riot technology is indie game level",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "played about games i don t understand the hype surrounding this game this is a combination of tf csgo with a poorly executed design unfortunate don t download this game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "the graphics are a huge problem with this game apart from all the bugs and server issues but these are something that can be solved over time and i trust the devs to do that the main and huge issue with this game is that the maps are repetitive most of the rooms feel the same everything is just one pattern the gameplay isn t fun because csgo is a better option the abilities are either overpowered or useless and it does not feel natural in the game just play csgo which is a great refined game or ",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "valorant gets everything about overwatch and cs wrong lets be clear the game is not bad its just not good the good it works well things are smooth and the art design is a huge improvement both in terms of aesthetic and visibility over cs the bad the agent skills are horribly balanced with characters like omen and jet paling in comparison to agents like sage and cypher in pair with having to buy skills the skills don t deliver fun when you get stuck with an agent cs style gameplay is broken by th",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "there are many issues with this game one the maps are garbage due to their inherit claustrophobic nature where you need to check corners two it feels like riot sacrificed the creativity of weapons in favour of the creativity of abilities the main sniper is clunky and plays as if it was designed for one purpose of holding angles on defence the cs go deagle equivalent cannot head shot kill from a far distance on armoured opponents and cannot be spammed close range decreasing the potential of this ",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "tejo is annoying and poorly tuned on haven between toxic lobbies and buggy hitreg ranked feels cooked lately",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "same nothing new to highlight vs the others shooting games booooooooooring",
+          "text": "played iso across silver matches on corrode core mechanics are okay nothing crazy some games have great comms and tight rounds while others swing wildly in skill gap right in the middle for me this act",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "abusing twtich numbers by giving away beta keys to streamers who are playing a video having pros make videos saying they are leaving cs go for valorant a mega tech company with close ties to chinese government that harvest data and forces you to install a highly intrusive anti cheat system that does little to stop hackers matches how can you not give this game a or out of the game itself looks very dated with poor map design and boring gameplay i cannot recommend this to anyone please spare your",
+          "text": "playing against phoenix on icebox feels broken and completely unfair after vanguard anti cheat errors forced multiple restarts and gave me an unfair queue dodge penalty terrible experience for solo queue players",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "just a disrespectful copy and mashup of csgo and ow and not only that but to be even able to play the game you need to install an anti cheat system that has the potential of bricking your pc by accidentally turning your pc fans off or similiar issues a game that has multiple economies and is still turn based is just a bad idea you can play seeminly perfectly economy wise like you do in csgo but then get one shot from nowhere by someone s ult even though he has just a pistol that is just bad game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "it s honestly just really really boring there s not much really special about it people say it s like overwatch and cs i would also add rainbow six into the mix because it s more tactical and it would work if it was more balanced and overall just more interesting it s quite boring and there s not much really special about it",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "what an absolute joke of a game it s a very average counter strike clone but honestly what do you expect from riot all they can do is copy valve games but make them worse apparently",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i have only had probably hours of experience in this game but over hundreds in csgo valorant feels like a mismatch of csgo and overwatch the anti cheat definitely puts me off though",
+          "text": "valorant is still fun with friends when running brimstone on abyss but needs polish fun in short sessions while long ranked grinds can feel tiring without a stack hoping the next patch smooths out matchmaking",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "really hate the state of tejo after the patch tejo feels weak on icebox and the servers have been laggy",
+          "text": "patch broke deadlock on abyss constant fps drops and terrible hit registration overpriced cosmetics keep dropping every week while core ranked issues stay ignored really disappointing direction for competitive play",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "jogo bem fraco spray das armas mais parece que rng sem precis o agentes desbalanceados e o gr fico nem se fala parece um jogo de o lado bom que o jogo free to play mas n o compensa o marasmo que o jogo parado demais",
+          "text": "astra is annoying and poorly tuned on bind ranked lobbies feel cooked lately vanguard anti cheat errors forced multiple restarts and gave me an unfair queue dodge penalty fix hitreg and smurfing instead of adding pricier bundles",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "the best crashes simulator not playable at all they say that you can play valorant even on a calculator but it feels like they made it only for calculator because my pc can t stand this peace of garbage",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "gekko feels frustrating and broken on sunset playing against gekko right now is awful and matchmaking feels terrible",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "good things game is fun bad things excessive rubber banding really bad hit reg and a lot of desync with above fps and ping if you ask for real just check centenes of topics on reddit and videos talking about right now the game is in a really bad spot",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "waylay sits in an average spot on lotus useful in coordinated stacks while solo queue timing with waylay takes practice",
+          "text": "solid gunplay on icebox with killjoy yet matchmaking consistency still fluctuates some games have great comms and tight rounds while others swing wildly in skill gap worth playing casually mixed for hardcore ranked",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "i have more than k hours in both cs and pubg the marketing team created a huge hype about this game developers boasted about hit regs no peek er advantage and tick servers btw tick is more than enough for regular players but i can not really feel these advantages random spray patterns do not make any sense the graphics are from shooting mechanisms are like mobile game mechanics no satisfaction in killing movement is sluggish walking sounds are very bad the game encourages camping p sy plays the ",
+          "text": "uninstalled after a week of unrated on summit awful ping and buggy vanguard popups hitreg feels inconsistent servers rubber band mid gunfight and packet loss spikes randomly needs an urgent hotfix before ranked is playable again",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "very crappy game when im playing it feels like im playing those kind of cs knockoffs like crossfire and others",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "it s boring no speed no momentum just walking the maps are just rectangles",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "eu achei o jogo horrivel poderia ter bem mais armas tem umas armas de umas skins muito enjoativo o jogo tem algumas habilidades mas s o bem chatas nada de inovador",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "iso is annoying and poorly tuned on ascent between toxic lobbies and buggy hitreg ranked feels cooked lately",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "tejo feels frustrating and broken on fracture playing against tejo right now is awful and matchmaking feels terrible",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "they have fixed nothing since the beta hitdetection is a pure joke now you see blood splatter and you clearly hit someone times then you instantdie from one shot and the damage report says you hit him twice in the foot but the only thing visible was his freaking head on top of that they added a new feature since the beta now the game can only detect one of my screens and nomatter what i do i can only play on my secondary monitor if i move the window there pathetic if the gunplay felt nice this g",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i love riot cs go and overwatch but this game feels so hollow it looks like an half ass attempt to combine all famous element to make a money producing machine instead of a great game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "what multiplayer game in doesn t support cross region can t even play it with friends cause they are on na well i m stuck on eu",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i played the game during beta and after release i ve tried to get into this game but the game is missing something a lot of something it copies other games too much to be new and exciting and its not even a good copy of anything valorant has a serious identity crisis going on it wants to be so many other games that it cant focus on one thing and excel at it its like a really bad store brand of coca cola its nowhere near good as the original and it has repulsive after taste",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "played hush across several sunset games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
+          "text": "played tejo across gold matches on haven core mechanics are okay nothing crazy some games have great comms and tight rounds while others swing wildly in skill gap good foundation just needs a couple quality of life updates",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "i have played through the beta the game itself is fun enough and controls well however there are two reasons i have to give it a zero firstly the community is somehow worse than league of legends and cs go secondly the most egregious problem is the anti cheat who thought that creating a kernel level security driver is a good idea this creates unwanted attack vector on your pc also it seems to have little benefit to stopping cheats riot should fix this and figure out a safer and smarter anti chea",
+          "text": "bad balance patch raze struggles on abyss and servers are laggy ability visual clutter makes holding angles painful and punishes pure aim duels needs an urgent hotfix before ranked is playable again",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "okay i ll start off by saying some of the reviews are quiet harsh and unfair riot were going for a csgo esport competitor and i think they got that pros anti cheat does well on keeping cheaters out game runs well on a diverse range of high to low and computers subjective i personally quite like the game and map design cons the anti cheat i think it s called vanguards is very intrusive from my experience so far the abilities make it very cluttered and kinda like overwatch as a spectator esport al",
+          "text": "tried phoenix in gold on lotus interesting kit though rotations take adjustment patch notes help keep things rotating though replay tools and map voting are overdue right in the middle for me this act",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "this game is literally just a copy of cs go they could have came with something new in fps genre no they had to copy everything from cs go overwatch don t play this game anti cheat is worst thing i ve seen in years",
+          "text": "reyna feels awful and frustrating on fracture in patch hitreg feels inconsistent servers rubber band mid gunfight and packet loss spikes randomly needs an urgent hotfix before ranked is playable again",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "tries so much fails in every imaginable aspect it looks like a cheap chinese copy of cs or ow you would find online it feels cluncky and it s so visually unappealing that i could play a s game and still get more immersed and impressed by the graphics and don t even get me started on that dubious anti cheat to say the leasr it s not even proven that it greatly reduces the number of hackers and they advertise it like some kind of game changer in the industry i wouldn t get that thing on my compute",
+          "text": "vyse feels awful and frustrating on sunset in patch toxicity in voice chat is awful and the reporting system rarely feels responsive easily the most frustrating stretch since launch",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "absolute joke of a game trying to install vanguard kept making my hdd stop working on my laptop and causing constant bsod even factory resetting the laptop wouldn t fix this issue i had to replace it eager to give it another try i installed the game this time on an external hdd to be safe loaded the game up to find i d been placed in the wrong server instead of being placed in japan i was placed in usa so the lag made the game unplayable i tried to swap the server but it wouldn t detect my serve",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "breach feels frustrating and broken on fracture playing against breach right now is awful and matchmaking feels terrible",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "sage on icebox has an interesting sentinel kit though the current patch still needs fine tuning and more map variety",
+          "text": "icebox plays fine with sage however the battle pass and skin prices stay steep patch notes help keep things rotating though replay tools and map voting are overdue right in the middle for me this act",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "omen feels frustrating and broken on ascent playing against omen right now is awful and matchmaking feels terrible",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "below average f p cs clone that does not understand what makes cs work movement and gunplay are on par with any generic chinese free to play shooter maps are absolutely terrible and completely miss the point what makes tactical shooter maps good",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "really hate the state of miks after the patch miks feels weak on fracture and the servers have been laggy",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "chamber feels frustrating and broken on lotus playing against chamber right now is awful and matchmaking feels terrible",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "some say it s a mix of overwatch with cs go but honestly there s no way to compare the game is fun to a certain extent but doesn t deliver anything new to the fps market but the most important thing is that it s not good to shoot with the weapons just like in other popular games just don t convince",
+          "text": "solid gunplay on corrode with hush yet matchmaking consistency still fluctuates fun in short sessions while long ranked grinds can feel tiring without a stack enjoyable with a squad average in solo queue",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "counter strike global offensive",
+          "text": "vanguard anti cheat keeps crashing my pc and silver matches on corrode are full of afks and smurfs easily the most frustrating stretch since launch",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "might have been cool in but in nope this really is a game for the stupid masses and it shows boring gameplay boring maps toxic players no thanks there are literally s of better games i can and will be playing instead uninstalled at least it was free so it gets point for that",
+          "text": "patch broke cypher on icebox constant fps drops and terrible hit registration utility timing feels clunky and the nerf stripped away what made the sentinel kit viable taking a break until matchmaking and balance improve",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "cypher feels frustrating and broken on sunset playing against cypher right now is awful and matchmaking feels terrible",
+          "text": "disappointed with how weak and clunky skye feels on icebox in silver ability visual clutter makes holding angles painful and punishes pure aim duels really disappointing direction for competitive play",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "the game seems to be unfinished the gameplay is slow a lot of bugs and the spread of bullets is not random i e it can be learned",
+          "text": "bad balance patch reyna struggles on fracture and servers are laggy overpriced cosmetics keep dropping every week while core ranked issues stay ignored fix hitreg and smurfing instead of adding pricier bundles",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "piece of crap i feel like i m playing a cheap clone of overwatch and cs go the game is so slow and you don t feel the weapon at all gameplay is boring",
+          "text": "really hate the state of harbor right now matchmaking on fracture is terrible one sided stomp matches make fracture miserable to defend without a full stack terrible experience for solo queue players",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "i feeling empty when playing it stupid map designing unbalance weapon broken character skills and hitbox i review after played games with good k d a",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "just another fps game made only to win money the game is just a boring copy of cs go and paladins where kids play rankeds beliving they are pro gamers won t play the game until there is a gamemode that doesn t feel like a waste of time",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i ll admit i was excited for this game after i saw it on stream for a bit but playing it is just laggy same and just not fun in a way that is hard to explain i just don t want to play it",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "breach on fracture has an interesting initiator kit though the current patch still needs fine tuning and more map variety",
+          "text": "tried deadlock in ascendant on ascent interesting kit though rotations take adjustment performance is generally smooth though occasional ping spikes still show up on weekends worth playing casually mixed for hardcore ranked",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "at launch this game is a mess the heroes seem unbalanced and not many people bother to use their abilities anyway since they can be buggy or take too long to use that they are essentially a liability balance of heroes doesn t seem great either performance is pretty spotty i have a decent i k cpu and rtx with a p hz monitor and noticed a lot of hitching and frame dips even with my set up and being on an ssd network latency was a bigger impact on enjoyment for me lots of bad ping spikes and i even",
+          "text": "disappointed with how weak and clunky vyse feels on ascent in platinum toxicity in voice chat is awful and the reporting system rarely feels responsive hard to recommend in its current state",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "played kay o across several breeze games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
+          "text": "really hate the state of phoenix right now matchmaking on icebox is terrible vanguard anti cheat errors forced multiple restarts and gave me an unfair queue dodge penalty fix hitreg and smurfing instead of adding pricier bundles",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "uninstalled after a week of platinum on icebox awful ping and buggy vanguard popups matchmaking throws smurfs and afk throwers into half my platinum lobbies needs an urgent hotfix before ranked is playable again",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "solid gunplay on bind with viper yet matchmaking consistency still fluctuates fun in short sessions while long ranked grinds can feel tiring without a stack right in the middle for me this act",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "pros the gui tutorial and training mode is nice con this game is really slow and boring the guns all seam the same the matches take forever to play very disappointed with all the hype coming in",
+          "text": "mixed feelings about phoenix as a duelist on lotus after the latest update some games have great comms and tight rounds while others swing wildly in skill gap worth playing casually mixed for hardcore ranked",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "playing any game should be fun but this piece of crap is not its just overrated boring slow and generic game that requires no skill",
+          "text": "uninstalled after a week of swiftplay on icebox awful ping and buggy vanguard popups overpriced cosmetics keep dropping every week while core ranked issues stay ignored hard to recommend in its current state",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "played brimstone across several fracture games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
+          "text": "iso feels awful and frustrating on fracture in patch ability visual clutter makes holding angles painful and punishes pure aim duels hope the next act actually fixes server stability",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "playing against sova on split feels broken and completely unfair after overpriced cosmetics keep dropping every week while core ranked issues stay ignored fix hitreg and smurfing instead of adding pricier bundles",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "solid gunplay on lotus with chamber yet matchmaking consistency still fluctuates some games have great comms and tight rounds while others swing wildly in skill gap worth playing casually mixed for hardcore ranked",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "played neon across several lotus games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
+          "text": "uninstalled after a week of unrated on bind awful ping and buggy vanguard popups toxicity in voice chat is awful and the reporting system rarely feels responsive really disappointing direction for competitive play",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "disappointed with how weak and clunky fade feels on summit in immortal hitreg feels inconsistent servers rubber band mid gunfight and packet loss spikes randomly easily the most frustrating stretch since launch",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "killjoy on lotus is decent in patch though the overall meta feels mixed fun in short sessions while long ranked grinds can feel tiring without a stack right in the middle for me this act",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "below average shooter most of the game exists purely of copying other games but only copying the bad aspects poor graphics balance feels off anti cheat is scum offers absolutely nothing that isnt out there already",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "the game may be fun because it brought the good points of successful games but this game has no originality vanguard errors in character setting the ninja character is korean huh there are many problems like above in a nutshell it s a lazy game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "played breach across several haven games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
+          "text": "iso on ascent is decent in patch though the overall meta feels mixed fun in short sessions while long ranked grinds can feel tiring without a stack right in the middle for me this act",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "gave point because there is probably less people ruining lol now because they work on this also beta key giveaway strategy",
+          "text": "bad balance patch kay o struggles on sunset and servers are laggy hitreg feels inconsistent servers rubber band mid gunfight and packet loss spikes randomly needs an urgent hotfix before ranked is playable again",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "the game looks like a mobile game that was put on pc no decent animations and plays very much like a mobile game such a shame to be honest if you want a better version of this then just get counterstrike or overwatch",
+          "text": "really hate the state of harbor right now matchmaking on split is terrible overpriced cosmetics keep dropping every week while core ranked issues stay ignored needs an urgent hotfix before ranked is playable again",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "really wanted to like this after all the hype the amount of streamers and views but its just meh the gunplay is so so the gameplay is clunky and slow paced and the other than the item shop of course and front end it s just not very polished killing someone isn t satisfying the games are too long and are a snoozefest if you are going to borrow heavily from two of the major games on the market you better do something with it that makes it stand out unfortunately there are much better options games",
+          "text": "terrible matchmaking experience on lotus skye feels overtuned in tight chokes matchmaking throws smurfs and afk throwers into half my stack lobbies hope the next act actually fixes server stability",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "the game does not feel up to par to other fps out there it is clunky slow the aim must be improved and the fact that your character gets slowed when hit makes it harder to walk side to side and try to deflect the skills are a nice add but if they re not granades they re not important there are better fps out there valorant has gotta improve to compete with those",
+          "text": "veto feels awful and frustrating on bind in patch ability visual clutter makes holding angles painful and punishes pure aim duels easily the most frustrating stretch since launch",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "it is simple if you like cs but hate overwatch don t play this game i played both with cs for the last years and the abilities ruin everything that makes cs one of the best fps there is cheaters and abilities that allow for legit wh are the most frustrating part of this game but it doesn t end on that maps are boring and offer nothing new with exception of bs in comparison to other games there are a couple of other things that are pretty bad like some animations graphics subjective and overall f",
+          "text": "cypher is annoying and poorly tuned on icebox ranked lobbies feel cooked lately ability visual clutter makes holding angles painful and punishes pure aim duels terrible experience for solo queue players",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "neon is annoying and poorly tuned on fracture between toxic lobbies and buggy hitreg ranked feels cooked lately",
+          "text": "tried maining iso in radiant on split but toxic teammates and hitreg killed the fun hitreg feels inconsistent servers rubber band mid gunfight and packet loss spikes randomly needs an urgent hotfix before ranked is playable again",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "i dunno it was fun for the first matches but after that its really freaking slow and some of the skills are just op and some just sucks really bad",
+          "text": "cypher is annoying and poorly tuned on lotus ranked lobbies feel cooked lately one sided stomp matches make lotus miserable to defend without a full stack really disappointing direction for competitive play",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "harbor sits in an average spot on abyss useful in coordinated stacks while solo queue timing with harbor takes practice",
+          "text": "tried sova in unrated on icebox interesting kit though rotations take adjustment fun in short sessions while long ranked grinds can feel tiring without a stack right in the middle for me this act",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "the games unplayable because of connection errors received mid game i can barely play for minutes without popping up it s annoying i wonder why it was release with so many bugs i ve gotten many errors and have tried all the fixes for it even the ones recommend from valorants support page i ve submitted a ticket but no response this game isn t reccomended",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "the game is very slow boring and bland there is no emotion in the gameplay the maps are very clostrophobic and with many strange angles valorant is just another bland fps i can t recommend the game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "o jogo divertido mas extremamente repetitivo n o existe nada de novo no jogo nenhuma originalidade uma vers o mais lenta de heroes shooters conhecidos overwatch paladins team fortress os mapas s o excessivamente travados e muitos cantos al m de parecer algo totalmente inacabado as armas s o uma piada voc trava a mira na cabe a e o tiro acerta o p isso parado a hitbox horr vel e totalmente imprecisa principalmente quando os personagens usam suas habilidades a interface do jogo lembra os primeiros",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i regretted being so expecting this game and i find it quite difficult for new players too like me",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "back to this game has not brought anything new to the gaming community she does not have graphics and original gameplay",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "no momentum no violence snoozfest and while snoozing tencent collects your data via the backdoor malware rootkit called anti cheat vanguard good times this is",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "cheap chinese cs go copy literally everything copyed from other games and cs go from movement to gunplay and they added bad part in game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i was very confused in the first few matches the game looks and feels completely unfinished very raw the animations are a joke the graphics the movement the shaders and textures everything reminds me strongly of freeware shooters from i expected a refined fine tuned team based shooter in reality this is nothing but a paid twitch hype the games style is very childish its a team fortress ripoff the menus and settings are very nice and should be like this on every game but the game itself wow i can",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "an unfortunate mix match of great id as that falls flat and fails to focus on any one of the great things it tries to do",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "played phoenix across several pearl games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
+          "text": "mixed feelings about chamber as a sentinel on icebox after the latest update fun in short sessions while long ranked grinds can feel tiring without a stack good foundation just needs a couple quality of life updates",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "the graphics are ugly i feel like i m playing a game from the early s the game is so slow and not dynamic in addition it is unbalanced lots of noise for not much",
+          "text": "bad balance patch sova struggles on sunset and servers are laggy one sided stomp matches make sunset miserable to defend without a full stack hard to recommend in its current state",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "in its attempt to please all audiences riot games valorant please no one if i wanted to play a shooter i d play counter strike if i wanted to play a hero ability game i d play overwatch or paladins the map design is awful when compared to an actual competitive game like counter strike and the graphics don t help either making it look like something i d find in the indie game section of steam the heros are unoriginal some abilities overpowered and the voicelines are cringe at best if you can get ",
+          "text": "uninstalled after a week of ascendant on breeze awful ping and buggy vanguard popups overpriced cosmetics keep dropping every week while core ranked issues stay ignored easily the most frustrating stretch since launch",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "kay o on ascent has an interesting initiator kit though the current patch still needs fine tuning and more map variety",
+          "text": "solid core shooting on abyss in patch though skin prices are steep and swiftplay matchmaking is hit or miss good foundation just needs a couple quality of life updates",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "played iso across several lotus games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
+          "text": "solid core shooting on breeze in patch though skin prices are steep and silver matchmaking is hit or miss hoping the next patch smooths out matchmaking",
           "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "playing against sage on lotus feels broken and completely unfair after hitreg feels inconsistent servers rubber band mid gunfight and packet loss spikes randomly fix hitreg and smurfing instead of adding pricier bundles",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "skye on bind is decent in patch though the overall meta feels mixed performance is generally smooth though occasional ping spikes still show up on weekends good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "worst episode so far neon utility spam on ascent ruins clean gunfights overpriced cosmetics keep dropping every week while core ranked issues stay ignored terrible experience for solo queue players",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "solid core shooting on summit in patch though skin prices are steep and radiant matchmaking is hit or miss hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "cannot stand skye right now on fracture zero counterplay in solo queue hitreg feels inconsistent servers rubber band mid gunfight and packet loss spikes randomly hard to recommend in its current state",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "uninstalled after a week of gold on sunset awful ping and buggy vanguard popups overpriced cosmetics keep dropping every week while core ranked issues stay ignored needs an urgent hotfix before ranked is playable again",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "solid gunplay on split with chamber yet matchmaking consistency still fluctuates utility timings are interesting even if a few choke points on split feel cramped worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "mixed feelings about phoenix as a duelist on pearl after the latest update the core shooting feels good yet smurf accounts in unrated hold back the climb right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "terrible matchmaking experience on bind vyse feels overtuned in tight chokes toxicity in voice chat is awful and the reporting system rarely feels responsive taking a break until matchmaking and balance improve",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "kay o on fracture is decent in patch though the overall meta feels mixed patch notes help keep things rotating though replay tools and map voting are overdue worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "phoenix is annoying and poorly tuned on breeze ranked lobbies feel cooked lately utility timing feels clunky and the nerf stripped away what made the duelist kit viable really disappointing direction for competitive play",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "frustrating server packet loss broken economy balance and overpriced skins ruin what used to be fun on breeze needs an urgent hotfix before ranked is playable again",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "really hate the state of iso right now matchmaking on fracture is terrible one sided stomp matches make fracture miserable to defend without a full stack terrible experience for solo queue players",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "patch broke chamber on breeze constant fps drops and terrible hit registration overpriced cosmetics keep dropping every week while core ranked issues stay ignored hope the next act actually fixes server stability",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "worst episode so far sage utility spam on lotus ruins clean gunfights one sided stomp matches make lotus miserable to defend without a full stack taking a break until matchmaking and balance improve",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "team fortress",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "cannot stand vyse right now on icebox zero counterplay in solo queue utility timing feels clunky and the nerf stripped away what made the sentinel kit viable terrible experience for solo queue players",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "frustrating server packet loss broken economy balance and overpriced skins ruin what used to be fun on sunset hope the next act actually fixes server stability",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "played yoru across competitive matches on pearl core mechanics are okay nothing crazy patch notes help keep things rotating though replay tools and map voting are overdue right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "sova sits in an average spot on icebox right now fine in stacks tricky solo the core shooting feels good yet smurf accounts in stack hold back the climb decent overall or out of right now",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "played astra across platinum matches on pearl core mechanics are okay nothing crazy some games have great comms and tight rounds while others swing wildly in skill gap hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "playing against clove on abyss feels broken and completely unfair after matchmaking throws smurfs and afk throwers into half my ascendant lobbies needs an urgent hotfix before ranked is playable again",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "disappointed with how weak and clunky cypher feels on icebox in unrated toxicity in voice chat is awful and the reporting system rarely feels responsive needs an urgent hotfix before ranked is playable again",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "bad balance patch astra struggles on breeze and servers are laggy matchmaking throws smurfs and afk throwers into half my gold lobbies taking a break until matchmaking and balance improve",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "disappointed with how weak and clunky harbor feels on bind in swiftplay ability visual clutter makes holding angles painful and punishes pure aim duels really disappointing direction for competitive play",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "bad balance patch waylay struggles on bind and servers are laggy overpriced cosmetics keep dropping every week while core ranked issues stay ignored needs an urgent hotfix before ranked is playable again",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "worst episode so far fade utility spam on split ruins clean gunfights utility timing feels clunky and the nerf stripped away what made the initiator kit viable taking a break until matchmaking and balance improve",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "patch left kay o feeling alright on ascent neither overpowered nor weak utility timings are interesting even if a few choke points on ascent feel cramped decent overall or out of right now",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "viper on icebox is decent in patch though the overall meta feels mixed utility timings are interesting even if a few choke points on icebox feel cramped right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "neon is annoying and poorly tuned on breeze ranked lobbies feel cooked lately vanguard anti cheat errors forced multiple restarts and gave me an unfair queue dodge penalty needs an urgent hotfix before ranked is playable again",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "fairly balanced duelist gameplay with jett on icebox just a bit repetitive over time performance is generally smooth though occasional ping spikes still show up on weekends right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "patch broke omen on icebox constant fps drops and terrible hit registration vanguard anti cheat errors forced multiple restarts and gave me an unfair queue dodge penalty really disappointing direction for competitive play",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "tried maining veto in premier on breeze but toxic teammates and hitreg killed the fun overpriced cosmetics keep dropping every week while core ranked issues stay ignored really disappointing direction for competitive play",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "terrible matchmaking experience on sunset vyse feels overtuned in tight chokes toxicity in voice chat is awful and the reporting system rarely feels responsive fix hitreg and smurfing instead of adding pricier bundles",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "patch broke phoenix on icebox constant fps drops and terrible hit registration toxicity in voice chat is awful and the reporting system rarely feels responsive easily the most frustrating stretch since launch",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "cannot stand skye right now on bind zero counterplay in solo queue one sided stomp matches make bind miserable to defend without a full stack needs an urgent hotfix before ranked is playable again",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "frustrating server packet loss broken economy balance and overpriced skins ruin what used to be fun on sunset taking a break until matchmaking and balance improve",
+          "actual": "Negative",
+          "predicted": "Positive"
+        },
+        {
+          "text": "patch left sage feeling alright on breeze neither overpowered nor weak performance is generally smooth though occasional ping spikes still show up on weekends right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "miks sits in an average spot on summit right now fine in stacks tricky solo performance is generally smooth though occasional ping spikes still show up on weekends worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "patch left waylay feeling alright on bind neither overpowered nor weak the core shooting feels good yet smurf accounts in premier hold back the climb hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "miks is annoying and poorly tuned on fracture ranked lobbies feel cooked lately hitreg feels inconsistent servers rubber band mid gunfight and packet loss spikes randomly fix hitreg and smurfing instead of adding pricier bundles",
+          "actual": "Negative",
           "predicted": "Positive"
         }
       ]
     },
     "SVM": {
-      "accuracy": 0.852,
-      "training_time_seconds": 0.053752600000734674,
-      "inference_latency_ms_per_review": 0.08601439998892602,
-      "test_samples": 250,
-      "validation_macro_f1": 0.7693866349006142,
+      "accuracy": 0.9976,
+      "training_time_seconds": 33.964059500001895,
+      "inference_latency_ms_per_review": 0.056542720001016275,
+      "test_samples": 2500,
+      "validation_macro_f1": 0.9984330363840118,
       "classification_report": {
         "Negative": {
-          "precision": 0.8151260504201681,
-          "recall": 0.8818181818181818,
-          "f1-score": 0.8471615720524017,
-          "support": 110.0
+          "precision": 0.9946380697050938,
+          "recall": 0.9986541049798116,
+          "f1-score": 0.9966420416386836,
+          "support": 743.0
         },
         "Neutral": {
           "precision": 1.0,
-          "recall": 0.5714285714285714,
-          "f1-score": 0.7272727272727273,
-          "support": 28.0
+          "recall": 0.9956331877729258,
+          "f1-score": 0.9978118161925602,
+          "support": 458.0
         },
         "Positive": {
-          "precision": 0.8695652173913043,
-          "recall": 0.8928571428571429,
-          "f1-score": 0.8810572687224669,
-          "support": 112.0
+          "precision": 0.9984591679506933,
+          "recall": 0.9976905311778291,
+          "f1-score": 0.9980747015787447,
+          "support": 1299.0
         },
-        "accuracy": 0.852,
+        "accuracy": 0.9976,
         "macro avg": {
-          "precision": 0.8948970892704908,
-          "recall": 0.7820346320346321,
-          "f1-score": 0.8184971893491987,
-          "support": 250.0
+          "precision": 0.9976990792185957,
+          "recall": 0.9973259413101888,
+          "f1-score": 0.9975095198033296,
+          "support": 2500.0
         },
         "weighted avg": {
-          "precision": 0.8602206795761783,
-          "recall": 0.852,
-          "f1-score": 0.8489192935452675,
-          "support": 250.0
+          "precision": 0.9976058179835341,
+          "recall": 0.9976,
+          "f1-score": 0.9976007544418095,
+          "support": 2500.0
         }
       },
       "confusion_matrix": [
         [
-          97,
+          742,
           0,
-          13
+          1
         ],
         [
-          10,
-          16,
-          2
+          1,
+          456,
+          1
         ],
         [
-          12,
+          3,
           0,
-          100
+          1296
         ]
       ],
       "error_examples": [
         {
-          "text": "i really really wanted to love valorant for i am looking for a game that is like csgo but isn t csgo well sadly riots game is not that i have been reinforced in my believes that abilities have no place in shooters not to mention in defusal game modes especially when said abilities replace utility leaving some characters without the tools to deal with a specific situation while others have such a strong toolkit that its outright unfair which defeats the competitive point imo you have a guy like c",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "without a choice of maps the game is unplayable i m tired of playing only on ascent",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "personally i just find it boring this was not ready to be launched they should actually go back to the closed beta when it launched the battle pass was broken the missions were broken queues filled with afk and leavers you can get randomly permabanned for no reason while actual cheaters get nothing also dollar skins seriously what the heck is going on with this game i wanted to love it so badly i wanted it to be my next addiction the next big game that i play but it launches no one talks about i",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the graphics are a huge problem with this game apart from all the bugs and server issues but these are something that can be solved over time and i trust the devs to do that the main and huge issue with this game is that the maps are repetitive most of the rooms feel the same everything is just one pattern the gameplay isn t fun because csgo is a better option the abilities are either overpowered or useless and it does not feel natural in the game just play csgo which is a great refined game or ",
+          "text": "team fortress",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "there are many issues with this game one the maps are garbage due to their inherit claustrophobic nature where you need to check corners two it feels like riot sacrificed the creativity of weapons in favour of the creativity of abilities the main sniper is clunky and plays as if it was designed for one purpose of holding angles on defence the cs go deagle equivalent cannot head shot kill from a far distance on armoured opponents and cannot be spammed close range decreasing the potential of this ",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "same nothing new to highlight vs the others shooting games booooooooooring",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "great game cant even go back to previous games where it now feels something is missing will play valorant for a long long time easy improvements would be a ranked system similair to league of legends",
+          "text": "well not an amazing game but surely rigid in it s concept you get to pick a character that has an ability used only once you get to buy weapons per game and if you are going well you will be able to buy more abilities whatever you do there is no ability better than a good and clear line of sight also map allows a guess game on the whereabouts of the enemy and sound tips stealth mechanism is there so if you don t rush tactical play is actually a possibility now as a matter of taste i graphics are",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "valorant has kept me entertained for hours with no signs of slowing down love additions made post launch",
+          "text": "its basically nothing new to the fps genre and its similar to the other games of the fps series i guess in our days there is pretty difficult to create something new and astonishing its can be played a couple of hours but to play in it like grinding something is really boring i somehow getting tired of anticheat being ass and i need to uninstall it to play other games without issues why it cant be like battleye",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "i have only had probably hours of experience in this game but over hundreds in csgo valorant feels like a mismatch of csgo and overwatch the anti cheat definitely puts me off though",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "jogo bem fraco spray das armas mais parece que rng sem precis o agentes desbalanceados e o gr fico nem se fala parece um jogo de o lado bom que o jogo free to play mas n o compensa o marasmo que o jogo parado demais",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "eu achei o jogo horrivel poderia ter bem mais armas tem umas armas de umas skins muito enjoativo o jogo tem algumas habilidades mas s o bem chatas nada de inovador",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "basically counter strike on a whole new level from what i ve seen gunfights are still extremely important but people are actually using their brains rather than man rushing everywhere every round",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i played the game during beta and after release i ve tried to get into this game but the game is missing something a lot of something it copies other games too much to be new and exciting and its not even a good copy of anything valorant has a serious identity crisis going on it wants to be so many other games that it cant focus on one thing and excel at it its like a really bad store brand of coca cola its nowhere near good as the original and it has repulsive after taste",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "okay i ll start off by saying some of the reviews are quiet harsh and unfair riot were going for a csgo esport competitor and i think they got that pros anti cheat does well on keeping cheaters out game runs well on a diverse range of high to low and computers subjective i personally quite like the game and map design cons the anti cheat i think it s called vanguards is very intrusive from my experience so far the abilities make it very cluttered and kinda like overwatch as a spectator esport al",
+          "text": "as a hardcore shooter fan since cs i appreciated riot s attempt to create a new competitive fps in different guises unfortunately at present the game has very strong inconsistencies in the management of the basic mechanics that make a competitive and long lasting fps like cs is a title aimed particularly at a specific target certainly more modern and the matches are much more random than what i could have expected given by some absolutely rng components and it is in fact here where valorant show",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "easy version of cs go run softly in years ago computer interesting game",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "some say it s a mix of overwatch with cs go but honestly there s no way to compare the game is fun to a certain extent but doesn t deliver anything new to the fps market but the most important thing is that it s not good to shoot with the weapons just like in other popular games just don t convince",
+          "text": "i m a casual gamer who now and then enjoy a fps with valorant i m torn i do have fun playing it but not as fun as i would like for me the movement is clunky and it doesn t feel good when you hit an enemy compared to apex legends in these regards it s like night and day your opinion on the graphics are of course subjective and i don t mind it but it does feel unfinished unpolished maybe it s just not for me but i feel it has potential to be a game for everyone",
           "actual": "Neutral",
           "predicted": "Negative"
         },
         {
-          "text": "i don t even know why they hate this game",
+          "text": "ah esos seres especiales de csgo con el review bombing que le est n dando a este juego en fin la hipotenusa les lleg el verdugo as que dejen de fastidiar le pondr a un si no estuviese vanguard lo dem s todo chill",
           "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "pros the gui tutorial and training mode is nice con this game is really slow and boring the guns all seam the same the matches take forever to play very disappointed with all the hype coming in",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the game may be fun because it brought the good points of successful games but this game has no originality vanguard errors in character setting the ninja character is korean huh there are many problems like above in a nutshell it s a lazy game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "jsjsbsjdb ndkdbdondkdndkdnkdjkdndkndkekkdnk nk nkenk nkdnsknsksnsksjsksjsksn",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i regretted being so expecting this game and i find it quite difficult for new players too like me",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "an unfortunate mix match of great id as that falls flat and fails to focus on any one of the great things it tries to do",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "this is exactly what i needed during the pandemic an interesting competitive mix between an overwatch like moba and counter strike including both unique characters encouraging different playstyles and the weapon purchase and headshot mechanics which gives an opportunity for people like me who never were good at counter strike siiver despite plating competitive battles to count not only on my aim and reaction but also on a correct application of the chosen agent and his abilities in favor of my t",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i understand that the gameplay mechanics can have a lot of depth and if i could ve gotten over my initial impressions maybe i would ve loved this game the eula agreement made me laugh the tutorial is well done but after that the game went downhill for me like a bad trip the user interface is not intuitive after the tutorial you try to connect to a multiplayer game but find out you can t because you need to switch to open play picking a character is not untuitive you click them and then a button ",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "it may come across as trolling but what most people seek is change the game itself is not terrible i think it has lots of potential and is super fun however i did not ask for a free malware that will allow me to play the game kill my ventilation system almost overheating my pc my pretty lights i m being petty here but you get the idea so i tried closing it discovering that if i ever wanted to play during this session i d have to reboot my pc this among other things make vanguard a really negativ",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "amazing game the gameplay is very addicting and makes me strive to be better",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "as someone who has played the beta i can say the game is okay it doesn t feel very original or new the characters aren t original the gunplay feels like counterstrike and there s no clear narrative or story being presented to the player is it a counterstrike clone i would say it is with a bit of overwatch thrown in the mix",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "jogo na primeira partida muito divertido mas depois ficar muito enjoativo partidas no m ximo que eu joguei e me diverti o game e muito competitivo e tem poucos personagens",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i see bunch of cs go fanboys being hurted that their bad game is in shadow of this thanks for valorant riot and epic for killing valve and their games like cs go and dota hail valorant",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the game is trying to sit on chairs wants to be overwatch and cs go at the same time but does not give any new experience",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "riot games cs go death match",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "boring game but it has potential maybe in or years to become really good",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "cs go cs go",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "combines everything i love from cs and character based gameplay loved that they modeled the movement after which is still the beat iteration of cs",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "could be good but isn t you got the problem of solo queue but amplified by a ton you got skins worth an insane amount of money you got an anti cheat that is killing people s computes the came could go somewhere but i don t think it will",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i really like the attempt riot is making here but it seems to be only that an attempt it s immediately clear that the cs go vibe is what they re going for and the tf overwatch kinda classes are on paper a nice twist but with the focus being on gunplay some of the abilities seem more like gimmicks will probably be heavily marketed towards the esports crowd maybe like overwatch pros new thing from riot size of player base shouldn t be an issue will likely be getting steady updates like lol could b",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "cg go cs go",
-          "actual": "Neutral",
           "predicted": "Negative"
         }
       ]
     },
     "Naive Bayes": {
-      "accuracy": 0.844,
-      "training_time_seconds": 0.0020440000007511117,
-      "inference_latency_ms_per_review": 0.0022256000083871186,
-      "test_samples": 250,
-      "validation_macro_f1": 0.7340676589392343,
+      "accuracy": 0.9956,
+      "training_time_seconds": 0.07763650000197231,
+      "inference_latency_ms_per_review": 0.0008931200005463325,
+      "test_samples": 2500,
+      "validation_macro_f1": 0.9972616534035937,
       "classification_report": {
         "Negative": {
-          "precision": 0.7906976744186046,
-          "recall": 0.9272727272727272,
-          "f1-score": 0.8535564853556485,
-          "support": 110.0
+          "precision": 0.9893048128342246,
+          "recall": 0.9959623149394348,
+          "f1-score": 0.9926224010731053,
+          "support": 743.0
         },
         "Neutral": {
-          "precision": 0.8888888888888888,
-          "recall": 0.5714285714285714,
-          "f1-score": 0.6956521739130435,
-          "support": 28.0
+          "precision": 0.9978118161925602,
+          "recall": 0.9956331877729258,
+          "f1-score": 0.9967213114754099,
+          "support": 458.0
         },
         "Positive": {
-          "precision": 0.9029126213592233,
-          "recall": 0.8303571428571429,
-          "f1-score": 0.8651162790697674,
-          "support": 112.0
+          "precision": 0.9984555984555985,
+          "recall": 0.9953810623556582,
+          "f1-score": 0.9969159599074788,
+          "support": 1299.0
         },
-        "accuracy": 0.844,
+        "accuracy": 0.9956,
         "macro avg": {
-          "precision": 0.8608330615555723,
-          "recall": 0.7763528138528139,
-          "f1-score": 0.8047749794461532,
-          "support": 250.0
+          "precision": 0.9951907424941279,
+          "recall": 0.9956588550226728,
+          "f1-score": 0.9954198908186647,
+          "support": 2500.0
         },
         "weighted avg": {
-          "precision": 0.8519673866686737,
-          "recall": 0.844,
-          "f1-score": 0.841049990058002,
-          "support": 250.0
+          "precision": 0.9956180440583375,
+          "recall": 0.9956,
+          "f1-score": 0.9956042546291479,
+          "support": 2500.0
         }
       },
       "confusion_matrix": [
         [
-          102,
+          740,
           1,
-          7
+          2
         ],
         [
-          9,
-          16,
-          3
+          2,
+          456,
+          0
         ],
         [
-          18,
-          1,
-          93
+          6,
+          0,
+          1293
         ]
       ],
       "error_examples": [
         {
-          "text": "i really really wanted to love valorant for i am looking for a game that is like csgo but isn t csgo well sadly riots game is not that i have been reinforced in my believes that abilities have no place in shooters not to mention in defusal game modes especially when said abilities replace utility leaving some characters without the tools to deal with a specific situation while others have such a strong toolkit that its outright unfair which defeats the competitive point imo you have a guy like c",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "without a choice of maps the game is unplayable i m tired of playing only on ascent",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "personally i just find it boring this was not ready to be launched they should actually go back to the closed beta when it launched the battle pass was broken the missions were broken queues filled with afk and leavers you can get randomly permabanned for no reason while actual cheaters get nothing also dollar skins seriously what the heck is going on with this game i wanted to love it so badly i wanted it to be my next addiction the next big game that i play but it launches no one talks about i",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "same nothing new to highlight vs the others shooting games booooooooooring",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "great game cant even go back to previous games where it now feels something is missing will play valorant for a long long time easy improvements would be a ranked system similair to league of legends",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i have only had probably hours of experience in this game but over hundreds in csgo valorant feels like a mismatch of csgo and overwatch the anti cheat definitely puts me off though",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "basically counter strike on a whole new level from what i ve seen gunfights are still extremely important but people are actually using their brains rather than man rushing everywhere every round",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the game have very good at competitive aspect rather than the other game for first person shooter because you can followed up what is happening in the game other game just you cant followed up what is really happening that is bad for competitive match up and people who are watching valorant is not the what you think it is valorant is good for matching and tactics by using utilities strategies by good communication even you lose you may focus on what is the problem that is why this game is for pl",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "okay i ll start off by saying some of the reviews are quiet harsh and unfair riot were going for a csgo esport competitor and i think they got that pros anti cheat does well on keeping cheaters out game runs well on a diverse range of high to low and computers subjective i personally quite like the game and map design cons the anti cheat i think it s called vanguards is very intrusive from my experience so far the abilities make it very cluttered and kinda like overwatch as a spectator esport al",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "the game is made with dignity and may well be considered an aaa product despite the fact that it is distributed according to the free to play model the design of the maps characters and weapons is original and not everyone will like it like the gameplay itself the concept of gameplay is far from new but valorant can definitely revive this genre again i would also like to say about the interface it s not perfect it has problems with readability and intuitiveness over time you begin to understand ",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "please ignore the zoomers who ve played nothing other than csgo and wouldn t know what a good game was if it slapped them across the face with its cock valorant in beta was already in a better state than csgo is right now the game is incredibly polished has a good anti cheat which is constantly improving maps are uncluttered overall visuals are clean the gunplay is much more reminiscent of cs punishes spray and praying while rewarding precision trigger discipline you can actually shoot through w",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "easy version of cs go run softly in years ago computer interesting game",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "some say it s a mix of overwatch with cs go but honestly there s no way to compare the game is fun to a certain extent but doesn t deliver anything new to the fps market but the most important thing is that it s not good to shoot with the weapons just like in other popular games just don t convince",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i don t even know why they hate this game",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "pros the gui tutorial and training mode is nice con this game is really slow and boring the guns all seam the same the matches take forever to play very disappointed with all the hype coming in",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the game may be fun because it brought the good points of successful games but this game has no originality vanguard errors in character setting the ninja character is korean huh there are many problems like above in a nutshell it s a lazy game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "it s a very good game with a very interesting idea this game is truly exciting and you want to play it again and again",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "jsjsbsjdb ndkdbdondkdndkdnkdjkdndkndkekkdnk nk nkenk nkdnsknsksnsksjsksjsksn",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "nice and innovative gameplay graphics engine compatible with many low end laptops and pcs just like league of legends although there is still some problem with vanguard and the servers i hope that they can be fixed soon personally i think that cs go and overwatch fanboys should stop being a whiny little play the game and think for a moment before writing ratings i read many ratings and some of it looks stupid like it has been written by some elementary students with hate for valorant league of l",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i regretted being so expecting this game and i find it quite difficult for new players too like me",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "an unfortunate mix match of great id as that falls flat and fails to focus on any one of the great things it tries to do",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "this is exactly what i needed during the pandemic an interesting competitive mix between an overwatch like moba and counter strike including both unique characters encouraging different playstyles and the weapon purchase and headshot mechanics which gives an opportunity for people like me who never were good at counter strike siiver despite plating competitive battles to count not only on my aim and reaction but also on a correct application of the chosen agent and his abilities in favor of my t",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i understand that the gameplay mechanics can have a lot of depth and if i could ve gotten over my initial impressions maybe i would ve loved this game the eula agreement made me laugh the tutorial is well done but after that the game went downhill for me like a bad trip the user interface is not intuitive after the tutorial you try to connect to a multiplayer game but find out you can t because you need to switch to open play picking a character is not untuitive you click them and then a button ",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "it may come across as trolling but what most people seek is change the game itself is not terrible i think it has lots of potential and is super fun however i did not ask for a free malware that will allow me to play the game kill my ventilation system almost overheating my pc my pretty lights i m being petty here but you get the idea so i tried closing it discovering that if i ever wanted to play during this session i d have to reboot my pc this among other things make vanguard a really negativ",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "first and foremost most of the reviews here are from people who didn t play the game or only played a few hours most of the opinions in these reviews are the same opinions people were saying ever since the first trailer for this game came out it isn t a csgo or overwatch clone if you go into the game thinking it is you ll either be disappointed or upset like many of the users in these reviews i only have a few complaints of the game being why this is an and not a the biggest and most problematic",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "as someone who has played the beta i can say the game is okay it doesn t feel very original or new the characters aren t original the gunplay feels like counterstrike and there s no clear narrative or story being presented to the player is it a counterstrike clone i would say it is with a bit of overwatch thrown in the mix",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "jogo na primeira partida muito divertido mas depois ficar muito enjoativo partidas no m ximo que eu joguei e me diverti o game e muito competitivo e tem poucos personagens",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i see bunch of cs go fanboys being hurted that their bad game is in shadow of this thanks for valorant riot and epic for killing valve and their games like cs go and dota hail valorant",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the game is trying to sit on chairs wants to be overwatch and cs go at the same time but does not give any new experience",
+          "text": "team fortress",
           "actual": "Negative",
           "predicted": "Positive"
         },
@@ -1034,841 +740,801 @@
           "predicted": "Negative"
         },
         {
-          "text": "riot games cs go death match",
+          "text": "well not an amazing game but surely rigid in it s concept you get to pick a character that has an ability used only once you get to buy weapons per game and if you are going well you will be able to buy more abilities whatever you do there is no ability better than a good and clear line of sight also map allows a guess game on the whereabouts of the enemy and sound tips stealth mechanism is there so if you don t rush tactical play is actually a possibility now as a matter of taste i graphics are",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "the graphic it ok because of that my pc can handle the game but there still some lag the game play it kinda similar to csgo and some of the shoting game but there is some problem the hitbox it kinda annoying and when the game start you had to play to the end",
+          "text": "got a lot of fps issues where it s difficult to play but overall good game i think would reccomend but i hope they ll fix fps",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "can t understand the bad reviews the first shooter who goes straight against hackers and the riot vanguard is a good thing for me to ensure that there is no chance for them if you don t like it just don t play it i hope there will be more levels in the next time and some more guns to choose from its free so give it a try and find out",
+          "text": "its basically nothing new to the fps genre and its similar to the other games of the fps series i guess in our days there is pretty difficult to create something new and astonishing its can be played a couple of hours but to play in it like grinding something is really boring i somehow getting tired of anticheat being ass and i need to uninstall it to play other games without issues why it cant be like battleye",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "boring game but it has potential maybe in or years to become really good",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "cs go cs go",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "could be good but isn t you got the problem of solo queue but amplified by a ton you got skins worth an insane amount of money you got an anti cheat that is killing people s computes the came could go somewhere but i don t think it will",
+          "text": "very raw game mm is broken graphics is still back does not worth your time",
           "actual": "Negative",
           "predicted": "Neutral"
         },
         {
-          "text": "i really like the attempt riot is making here but it seems to be only that an attempt it s immediately clear that the cs go vibe is what they re going for and the tf overwatch kinda classes are on paper a nice twist but with the focus being on gunplay some of the abilities seem more like gimmicks will probably be heavily marketed towards the esports crowd maybe like overwatch pros new thing from riot size of player base shouldn t be an issue will likely be getting steady updates like lol could b",
+          "text": "for mechanics and gameplay it s just take forever for game and it s just boring for being truly free to play",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "valve",
-          "actual": "Positive",
-          "predicted": "Neutral"
+          "text": "as a hardcore shooter fan since cs i appreciated riot s attempt to create a new competitive fps in different guises unfortunately at present the game has very strong inconsistencies in the management of the basic mechanics that make a competitive and long lasting fps like cs is a title aimed particularly at a specific target certainly more modern and the matches are much more random than what i could have expected given by some absolutely rng components and it is in fact here where valorant show",
+          "actual": "Neutral",
+          "predicted": "Negative"
         },
         {
-          "text": "cg go cs go",
+          "text": "i m a casual gamer who now and then enjoy a fps with valorant i m torn i do have fun playing it but not as fun as i would like for me the movement is clunky and it doesn t feel good when you hit an enemy compared to apex legends in these regards it s like night and day your opinion on the graphics are of course subjective and i don t mind it but it does feel unfinished unpolished maybe it s just not for me but i feel it has potential to be a game for everyone",
           "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "ah esos seres especiales de csgo con el review bombing que le est n dando a este juego en fin la hipotenusa les lleg el verdugo as que dejen de fastidiar le pondr a un si no estuviese vanguard lo dem s todo chill",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "didn t really understand the bashing having fun rn on the game personally i dislike playing cs and came to valorant thinking i will hate the game but i found the heroes and abilities gameplay freshening it s a really slow fps with a short ttk the maps are good even if not innovative the new one is better graphics are subjectives but didn t bothered me i experimented a little bug at the release with unattributed reward but it was fastly patched for me didn t got any other problem in the end the g",
+          "actual": "Positive",
           "predicted": "Negative"
         }
       ]
     },
     "LSTM": {
-      "accuracy": 0.8,
-      "training_time_seconds": 14.291548000001058,
-      "inference_latency_ms_per_review": 2.76799399999436,
-      "test_samples": 250,
-      "validation_macro_f1": 0.728417746014211,
+      "accuracy": 0.996,
+      "training_time_seconds": 60.43661720000091,
+      "inference_latency_ms_per_review": 0.3410720400002901,
+      "test_samples": 2500,
+      "validation_macro_f1": 0.9972616534035937,
       "classification_report": {
         "Negative": {
-          "precision": 0.7946428571428571,
-          "recall": 0.8090909090909091,
-          "f1-score": 0.8018018018018018,
-          "support": 110.0
+          "precision": 0.9893333333333333,
+          "recall": 0.9986541049798116,
+          "f1-score": 0.9939718687206965,
+          "support": 743.0
         },
         "Neutral": {
-          "precision": 0.8,
-          "recall": 0.5714285714285714,
-          "f1-score": 0.6666666666666666,
-          "support": 28.0
+          "precision": 0.9978118161925602,
+          "recall": 0.9956331877729258,
+          "f1-score": 0.9967213114754099,
+          "support": 458.0
         },
         "Positive": {
-          "precision": 0.8050847457627118,
-          "recall": 0.8482142857142857,
-          "f1-score": 0.8260869565217391,
-          "support": 112.0
+          "precision": 0.9992266047950503,
+          "recall": 0.9946112394149346,
+          "f1-score": 0.9969135802469136,
+          "support": 1299.0
         },
-        "accuracy": 0.8,
+        "accuracy": 0.996,
         "macro avg": {
-          "precision": 0.799909200968523,
-          "recall": 0.7429112554112555,
-          "f1-score": 0.7648518083300693,
-          "support": 250.0
+          "precision": 0.9954572514403145,
+          "recall": 0.9962995107225573,
+          "f1-score": 0.9958689201476734,
+          "support": 2500.0
         },
         "weighted avg": {
-          "precision": 0.799920823244552,
-          "recall": 0.8,
-          "f1-score": 0.7975464159811986,
-          "support": 250.0
+          "precision": 0.9960271352446518,
+          "recall": 0.996,
+          "f1-score": 0.9960040799423823,
+          "support": 2500.0
         }
       },
       "confusion_matrix": [
         [
-          89,
-          3,
-          18
+          742,
+          0,
+          1
         ],
         [
-          7,
-          16,
-          5
+          2,
+          456,
+          0
         ],
         [
-          16,
+          6,
           1,
-          95
+          1292
         ]
       ],
       "error_examples": [
         {
-          "text": "i don t know why but i was expecting more maybe is because the game is new but it doesn t have much originality",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "valorant cs go",
+          "text": "valorant has great art design interesting gameplay and is all around good this is not without it s issues however i first and foremost feel like the games drag on too long rounds to win is a long time and i feel like it works in a competitive environment but a more casual mode that has rounds or something would work a bit better for quick play type thing my second problem is that the maps feel too cramped and vaguley empty i feel like this may just be personal preference but if you look at the i",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "i really really wanted to love valorant for i am looking for a game that is like csgo but isn t csgo well sadly riots game is not that i have been reinforced in my believes that abilities have no place in shooters not to mention in defusal game modes especially when said abilities replace utility leaving some characters without the tools to deal with a specific situation while others have such a strong toolkit that its outright unfair which defeats the competitive point imo you have a guy like c",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "without a choice of maps the game is unplayable i m tired of playing only on ascent",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "personally i just find it boring this was not ready to be launched they should actually go back to the closed beta when it launched the battle pass was broken the missions were broken queues filled with afk and leavers you can get randomly permabanned for no reason while actual cheaters get nothing also dollar skins seriously what the heck is going on with this game i wanted to love it so badly i wanted it to be my next addiction the next big game that i play but it launches no one talks about i",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the graphics are a huge problem with this game apart from all the bugs and server issues but these are something that can be solved over time and i trust the devs to do that the main and huge issue with this game is that the maps are repetitive most of the rooms feel the same everything is just one pattern the gameplay isn t fun because csgo is a better option the abilities are either overpowered or useless and it does not feel natural in the game just play csgo which is a great refined game or ",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "valorant gets everything about overwatch and cs wrong lets be clear the game is not bad its just not good the good it works well things are smooth and the art design is a huge improvement both in terms of aesthetic and visibility over cs the bad the agent skills are horribly balanced with characters like omen and jet paling in comparison to agents like sage and cypher in pair with having to buy skills the skills don t deliver fun when you get stuck with an agent cs style gameplay is broken by th",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "there are many issues with this game one the maps are garbage due to their inherit claustrophobic nature where you need to check corners two it feels like riot sacrificed the creativity of weapons in favour of the creativity of abilities the main sniper is clunky and plays as if it was designed for one purpose of holding angles on defence the cs go deagle equivalent cannot head shot kill from a far distance on armoured opponents and cannot be spammed close range decreasing the potential of this ",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "same nothing new to highlight vs the others shooting games booooooooooring",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "great game cant even go back to previous games where it now feels something is missing will play valorant for a long long time easy improvements would be a ranked system similair to league of legends",
+          "text": "well not an amazing game but surely rigid in it s concept you get to pick a character that has an ability used only once you get to buy weapons per game and if you are going well you will be able to buy more abilities whatever you do there is no ability better than a good and clear line of sight also map allows a guess game on the whereabouts of the enemy and sound tips stealth mechanism is there so if you don t rush tactical play is actually a possibility now as a matter of taste i graphics are",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "i have only had probably hours of experience in this game but over hundreds in csgo valorant feels like a mismatch of csgo and overwatch the anti cheat definitely puts me off though",
+          "text": "got a lot of fps issues where it s difficult to play but overall good game i think would reccomend but i hope they ll fix fps",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "its basically nothing new to the fps genre and its similar to the other games of the fps series i guess in our days there is pretty difficult to create something new and astonishing its can be played a couple of hours but to play in it like grinding something is really boring i somehow getting tired of anticheat being ass and i need to uninstall it to play other games without issues why it cant be like battleye",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "as a hardcore shooter fan since cs i appreciated riot s attempt to create a new competitive fps in different guises unfortunately at present the game has very strong inconsistencies in the management of the basic mechanics that make a competitive and long lasting fps like cs is a title aimed particularly at a specific target certainly more modern and the matches are much more random than what i could have expected given by some absolutely rng components and it is in fact here where valorant show",
           "actual": "Neutral",
           "predicted": "Negative"
         },
         {
-          "text": "basically counter strike on a whole new level from what i ve seen gunfights are still extremely important but people are actually using their brains rather than man rushing everywhere every round",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "they have fixed nothing since the beta hitdetection is a pure joke now you see blood splatter and you clearly hit someone times then you instantdie from one shot and the damage report says you hit him twice in the foot but the only thing visible was his freaking head on top of that they added a new feature since the beta now the game can only detect one of my screens and nomatter what i do i can only play on my secondary monitor if i move the window there pathetic if the gunplay felt nice this g",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "i love riot cs go and overwatch but this game feels so hollow it looks like an half ass attempt to combine all famous element to make a money producing machine instead of a great game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i played the game during beta and after release i ve tried to get into this game but the game is missing something a lot of something it copies other games too much to be new and exciting and its not even a good copy of anything valorant has a serious identity crisis going on it wants to be so many other games that it cant focus on one thing and excel at it its like a really bad store brand of coca cola its nowhere near good as the original and it has repulsive after taste",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i have played through the beta the game itself is fun enough and controls well however there are two reasons i have to give it a zero firstly the community is somehow worse than league of legends and cs go secondly the most egregious problem is the anti cheat who thought that creating a kernel level security driver is a good idea this creates unwanted attack vector on your pc also it seems to have little benefit to stopping cheats riot should fix this and figure out a safer and smarter anti chea",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "okay i ll start off by saying some of the reviews are quiet harsh and unfair riot were going for a csgo esport competitor and i think they got that pros anti cheat does well on keeping cheaters out game runs well on a diverse range of high to low and computers subjective i personally quite like the game and map design cons the anti cheat i think it s called vanguards is very intrusive from my experience so far the abilities make it very cluttered and kinda like overwatch as a spectator esport al",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "the game is made with dignity and may well be considered an aaa product despite the fact that it is distributed according to the free to play model the design of the maps characters and weapons is original and not everyone will like it like the gameplay itself the concept of gameplay is far from new but valorant can definitely revive this genre again i would also like to say about the interface it s not perfect it has problems with readability and intuitiveness over time you begin to understand ",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "some say it s a mix of overwatch with cs go but honestly there s no way to compare the game is fun to a certain extent but doesn t deliver anything new to the fps market but the most important thing is that it s not good to shoot with the weapons just like in other popular games just don t convince",
+          "text": "i m a casual gamer who now and then enjoy a fps with valorant i m torn i do have fun playing it but not as fun as i would like for me the movement is clunky and it doesn t feel good when you hit an enemy compared to apex legends in these regards it s like night and day your opinion on the graphics are of course subjective and i don t mind it but it does feel unfinished unpolished maybe it s just not for me but i feel it has potential to be a game for everyone",
           "actual": "Neutral",
           "predicted": "Negative"
         },
         {
-          "text": "i don t even know why they hate this game",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "pros the gui tutorial and training mode is nice con this game is really slow and boring the guns all seam the same the matches take forever to play very disappointed with all the hype coming in",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the game may be fun because it brought the good points of successful games but this game has no originality vanguard errors in character setting the ninja character is korean huh there are many problems like above in a nutshell it s a lazy game",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "it is simple if you like cs but hate overwatch don t play this game i played both with cs for the last years and the abilities ruin everything that makes cs one of the best fps there is cheaters and abilities that allow for legit wh are the most frustrating part of this game but it doesn t end on that maps are boring and offer nothing new with exception of bs in comparison to other games there are a couple of other things that are pretty bad like some animations graphics subjective and overall f",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "jsjsbsjdb ndkdbdondkdndkdnkdjkdndkndkekkdnk nk nkenk nkdnsknsksnsksjsksjsksn",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "nice and innovative gameplay graphics engine compatible with many low end laptops and pcs just like league of legends although there is still some problem with vanguard and the servers i hope that they can be fixed soon personally i think that cs go and overwatch fanboys should stop being a whiny little play the game and think for a moment before writing ratings i read many ratings and some of it looks stupid like it has been written by some elementary students with hate for valorant league of l",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i regretted being so expecting this game and i find it quite difficult for new players too like me",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "back to this game has not brought anything new to the gaming community she does not have graphics and original gameplay",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "an unfortunate mix match of great id as that falls flat and fails to focus on any one of the great things it tries to do",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "yo csgo frogs are mad big time haha valorant cs don t forget to stay mad haters stay mad i m right",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i understand that the gameplay mechanics can have a lot of depth and if i could ve gotten over my initial impressions maybe i would ve loved this game the eula agreement made me laugh the tutorial is well done but after that the game went downhill for me like a bad trip the user interface is not intuitive after the tutorial you try to connect to a multiplayer game but find out you can t because you need to switch to open play picking a character is not untuitive you click them and then a button ",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i enjoyed the game one of the frustrating parts of the game currently is matchmaking with a clear lack of players that can play together as a team but that s in part to the game just having been released and new players not understanding maps characters gun mechanics etc this will get better with time valorant is a game that takes elements from counter strike and overwatch and in my opinion does it well this game is not a it isn t a it s a solid game that requires a lot of team play and knowledg",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "a mediocre and what looks like an un polished fps that was released to rival polished and established fps games with cult followings and supporters games and rounds felt too long for a casual game gameplay and controls felt clunky something you would expect from a game made in the early s anti cheat system that invades basically the core of any devicenyoubplay on and giving it fullnpermission to edit and view files in your system that doesnt even prevent hackers good marketing but a far far shot",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "it may come across as trolling but what most people seek is change the game itself is not terrible i think it has lots of potential and is super fun however i did not ask for a free malware that will allow me to play the game kill my ventilation system almost overheating my pc my pretty lights i m being petty here but you get the idea so i tried closing it discovering that if i ever wanted to play during this session i d have to reboot my pc this among other things make vanguard a really negativ",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "it s not a copy of cs go it s even better valorant is a very nice game and you can have a lot of fun if you play with friends",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "as someone who has played the beta i can say the game is okay it doesn t feel very original or new the characters aren t original the gunplay feels like counterstrike and there s no clear narrative or story being presented to the player is it a counterstrike clone i would say it is with a bit of overwatch thrown in the mix",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "jogo na primeira partida muito divertido mas depois ficar muito enjoativo partidas no m ximo que eu joguei e me diverti o game e muito competitivo e tem poucos personagens",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i see bunch of cs go fanboys being hurted that their bad game is in shadow of this thanks for valorant riot and epic for killing valve and their games like cs go and dota hail valorant",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "riot games cs go death match",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the graphic it ok because of that my pc can handle the game but there still some lag the game play it kinda similar to csgo and some of the shoting game but there is some problem the hitbox it kinda annoying and when the game start you had to play to the end",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "boring game but it has potential maybe in or years to become really good",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "cs go cs go",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "if i could get my rewards it would be cool there is still so much bus to be fixed i feel its still beta",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "people say it s unoriginal based on gun use and physics being identical to cs but what s wrong with that it s a sensible high skill aiming system that makes you unable to just rush in and make things into a reaction time test i can agree that the artstyle is uninspired it makes for clear gameplay and some nice looking places but it has some sameface syndrome and doesn t use it s cartoony style for tasteful exaggeration as much as it should but yet every moment i ve played was a blast even when i",
+          "text": "good game o jogo muito bom gameplay flu do gr ficos bonitos e jogabilidade insana",
           "actual": "Positive",
           "predicted": "Neutral"
         },
         {
-          "text": "when i tried valorant it was fine but it feels like i m missing something it feels empty and some people might agree or disagree but the game is not for everyone but if you want to play games that has the genre of fps and has hero skills then this is the game for you but for me it did not have a touch or we did not click when i played valorant my best rating is a and lowest rating for it is i felt like the game was a little bit over hyped i recommend this game for the low graphics needed so if y",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "could be good but isn t you got the problem of solo queue but amplified by a ton you got skins worth an insane amount of money you got an anti cheat that is killing people s computes the came could go somewhere but i don t think it will",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i really like the attempt riot is making here but it seems to be only that an attempt it s immediately clear that the cs go vibe is what they re going for and the tf overwatch kinda classes are on paper a nice twist but with the focus being on gunplay some of the abilities seem more like gimmicks will probably be heavily marketed towards the esports crowd maybe like overwatch pros new thing from riot size of player base shouldn t be an issue will likely be getting steady updates like lol could b",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "the game is cool of the csgo and of the overwatch match perfectly but sometimes it seems that the game is capable of more and as if a little more microtransactions than necessary i do not like cartoon style but here it is not felt in general i like the game",
+          "text": "ah esos seres especiales de csgo con el review bombing que le est n dando a este juego en fin la hipotenusa les lleg el verdugo as que dejen de fastidiar le pondr a un si no estuviese vanguard lo dem s todo chill",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "movement is very clunkly no ads when using pistols characters are imbalanced cheaters are dominating",
+          "text": "i couldn t even enjoy csgo much but this is even worse your review must be at least characters long",
           "actual": "Negative",
           "predicted": "Positive"
         },
         {
-          "text": "copypasted from dota counter strike and underlords lord gaben sue them all",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "cg go cs go",
-          "actual": "Neutral",
+          "text": "didn t really understand the bashing having fun rn on the game personally i dislike playing cs and came to valorant thinking i will hate the game but i found the heroes and abilities gameplay freshening it s a really slow fps with a short ttk the maps are good even if not innovative the new one is better graphics are subjectives but didn t bothered me i experimented a little bug at the release with unattributed reward but it was fastly patched for me didn t got any other problem in the end the g",
+          "actual": "Positive",
           "predicted": "Negative"
         }
       ]
     },
     "DistilBERT": {
-      "accuracy": 0.82,
+      "accuracy": 0.7444,
       "training_time_seconds": 1218.2506553000421,
-      "inference_latency_ms_per_review": 59.475806800008286,
-      "test_samples": 250,
-      "validation_macro_f1": 0.802320370734693,
+      "inference_latency_ms_per_review": 22.86493836000009,
+      "test_samples": 2500,
+      "validation_macro_f1": 0.6760172936711845,
       "classification_report": {
         "Negative": {
-          "precision": 0.8,
-          "recall": 0.8727272727272727,
-          "f1-score": 0.8347826086956521,
-          "support": 110.0
+          "precision": 0.6788655077767612,
+          "recall": 0.9986541049798116,
+          "f1-score": 0.8082788671023965,
+          "support": 743.0
         },
         "Neutral": {
-          "precision": 0.375,
-          "recall": 0.21428571428571427,
-          "f1-score": 0.2727272727272727,
-          "support": 28.0
+          "precision": 0.5178571428571429,
+          "recall": 0.25327510917030566,
+          "f1-score": 0.34017595307917886,
+          "support": 458.0
         },
         "Positive": {
-          "precision": 0.9035087719298246,
-          "recall": 0.9196428571428571,
-          "f1-score": 0.911504424778761,
-          "support": 112.0
+          "precision": 0.8478444632290786,
+          "recall": 0.7721324095458044,
+          "f1-score": 0.8082191780821918,
+          "support": 1299.0
         },
-        "accuracy": 0.82,
+        "accuracy": 0.7444,
         "macro avg": {
-          "precision": 0.6928362573099416,
-          "recall": 0.6688852813852814,
-          "f1-score": 0.6730047687338953,
-          "support": 250.0
+          "precision": 0.6815223712876609,
+          "recall": 0.6746872078986406,
+          "f1-score": 0.6522246660879224,
+          "support": 2500.0
         },
         "weighted avg": {
-          "precision": 0.7987719298245615,
-          "recall": 0.82,
-          "f1-score": 0.8062037846724264,
-          "support": 250.0
+          "precision": 0.7371702405765113,
+          "recall": 0.7444,
+          "f1-score": 0.7224913988384446,
+          "support": 2500.0
         }
       },
       "confusion_matrix": [
         [
-          96,
-          9,
-          5
-        ],
-        [
-          16,
-          6,
-          6
-        ],
-        [
-          8,
+          742,
           1,
-          103
+          0
+        ],
+        [
+          162,
+          116,
+          180
+        ],
+        [
+          189,
+          107,
+          1003
         ]
       ],
       "error_examples": [
         {
-          "text": "killjoy feels clean and powerful on icebox and the recent patch made killjoy even more useful for coordinated squads",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "without a choice of maps the game is unplayable i m tired of playing only on ascent",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "played jett across several abyss games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "personally i just find it boring this was not ready to be launched they should actually go back to the closed beta when it launched the battle pass was broken the missions were broken queues filled with afk and leavers you can get randomly permabanned for no reason while actual cheaters get nothing also dollar skins seriously what the heck is going on with this game i wanted to love it so badly i wanted it to be my next addiction the next big game that i play but it launches no one talks about i",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the graphics are a huge problem with this game apart from all the bugs and server issues but these are something that can be solved over time and i trust the devs to do that the main and huge issue with this game is that the maps are repetitive most of the rooms feel the same everything is just one pattern the gameplay isn t fun because csgo is a better option the abilities are either overpowered or useless and it does not feel natural in the game just play csgo which is a great refined game or ",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "valorant gets everything about overwatch and cs wrong lets be clear the game is not bad its just not good the good it works well things are smooth and the art design is a huge improvement both in terms of aesthetic and visibility over cs the bad the agent skills are horribly balanced with characters like omen and jet paling in comparison to agents like sage and cypher in pair with having to buy skills the skills don t deliver fun when you get stuck with an agent cs style gameplay is broken by th",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "valorant has kept me entertained for hours with no signs of slowing down love additions made post launch",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i have only had probably hours of experience in this game but over hundreds in csgo valorant feels like a mismatch of csgo and overwatch the anti cheat definitely puts me off though",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "jogo bem fraco spray das armas mais parece que rng sem precis o agentes desbalanceados e o gr fico nem se fala parece um jogo de o lado bom que o jogo free to play mas n o compensa o marasmo que o jogo parado demais",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "people are so dumb that they dont understand that the character has to be slower than cs go simply because the maps are smaller the game has no cheaters different from cs go ticks servers nice shot reg",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "good things game is fun bad things excessive rubber banding really bad hit reg and a lot of desync with above fps and ping if you ask for real just check centenes of topics on reddit and videos talking about right now the game is in a really bad spot",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "waylay sits in an average spot on lotus useful in coordinated stacks while solo queue timing with waylay takes practice",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "eu achei o jogo horrivel poderia ter bem mais armas tem umas armas de umas skins muito enjoativo o jogo tem algumas habilidades mas s o bem chatas nada de inovador",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "they have fixed nothing since the beta hitdetection is a pure joke now you see blood splatter and you clearly hit someone times then you instantdie from one shot and the damage report says you hit him twice in the foot but the only thing visible was his freaking head on top of that they added a new feature since the beta now the game can only detect one of my screens and nomatter what i do i can only play on my secondary monitor if i move the window there pathetic if the gunplay felt nice this g",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "played hush across several sunset games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i have played through the beta the game itself is fun enough and controls well however there are two reasons i have to give it a zero firstly the community is somehow worse than league of legends and cs go secondly the most egregious problem is the anti cheat who thought that creating a kernel level security driver is a good idea this creates unwanted attack vector on your pc also it seems to have little benefit to stopping cheats riot should fix this and figure out a safer and smarter anti chea",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "okay i ll start off by saying some of the reviews are quiet harsh and unfair riot were going for a csgo esport competitor and i think they got that pros anti cheat does well on keeping cheaters out game runs well on a diverse range of high to low and computers subjective i personally quite like the game and map design cons the anti cheat i think it s called vanguards is very intrusive from my experience so far the abilities make it very cluttered and kinda like overwatch as a spectator esport al",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "sage on icebox has an interesting sentinel kit though the current patch still needs fine tuning and more map variety",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i don t even know why they hate this game",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "breach on fracture has an interesting initiator kit though the current patch still needs fine tuning and more map variety",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "played kay o across several breeze games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "played brimstone across several fracture games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "played neon across several lotus games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the game may be fun because it brought the good points of successful games but this game has no originality vanguard errors in character setting the ninja character is korean huh there are many problems like above in a nutshell it s a lazy game",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "played breach across several haven games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the game does not feel up to par to other fps out there it is clunky slow the aim must be improved and the fact that your character gets slowed when hit makes it harder to walk side to side and try to deflect the skills are a nice add but if they re not granades they re not important there are better fps out there valorant has gotta improve to compete with those",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "harbor sits in an average spot on abyss useful in coordinated stacks while solo queue timing with harbor takes practice",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "hush feels clean and powerful on sunset and the recent patch made hush even more useful for coordinated squads",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "played phoenix across several pearl games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "veto feels clean and powerful on corrode and the recent patch made veto even more useful for coordinated squads",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "kay o on ascent has an interesting initiator kit though the current patch still needs fine tuning and more map variety",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "yo csgo frogs are mad big time haha valorant cs don t forget to stay mad haters stay mad i m right",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "played iso across several lotus games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i understand that the gameplay mechanics can have a lot of depth and if i could ve gotten over my initial impressions maybe i would ve loved this game the eula agreement made me laugh the tutorial is well done but after that the game went downhill for me like a bad trip the user interface is not intuitive after the tutorial you try to connect to a multiplayer game but find out you can t because you need to switch to open play picking a character is not untuitive you click them and then a button ",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "it may come across as trolling but what most people seek is change the game itself is not terrible i think it has lots of potential and is super fun however i did not ask for a free malware that will allow me to play the game kill my ventilation system almost overheating my pc my pretty lights i m being petty here but you get the idea so i tried closing it discovering that if i ever wanted to play during this session i d have to reboot my pc this among other things make vanguard a really negativ",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "jogo na primeira partida muito divertido mas depois ficar muito enjoativo partidas no m ximo que eu joguei e me diverti o game e muito competitivo e tem poucos personagens",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "so this a game that takes absolutely no time to explain you anything except how to move in a way too long mandatory tutorial you can t try the weapons outside a game so good luck finding the one you prefer once you start a game you can t change your hero so if you re trying them out and don t like it buckle up because it s on a round per side match playing both sides is mandatory too long story short when counter strike allow you to play for min if you want here you re in for at least min graphi",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "if this game was released when league of legends did it would be awesome now it s just like a flash explorer based game everything in this game is basic animations map environment damn even champions are just like a basic concept made by an indie company",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "played harbor across several icebox games the core mechanics are decent yet matchmaking consistency fluctuates from game to game",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "riot games cs go death match",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "this game is the new popular shooter but it isn t ready for now bugs crashes anti cheat issues that why i rated it grade but the rest cool",
+          "text": "riot nailed the tactical pace on haven and miks feels really effective there utility synergy with teammates feels smooth without breaking core aim mechanics worth every hour spent mastering lineups",
           "actual": "Positive",
           "predicted": "Neutral"
         },
         {
-          "text": "when i tried valorant it was fine but it feels like i m missing something it feels empty and some people might agree or disagree but the game is not for everyone but if you want to play games that has the genre of fps and has hero skills then this is the game for you but for me it did not have a touch or we did not click when i played valorant my best rating is a and lowest rating for it is i felt like the game was a little bit over hyped i recommend this game for the low graphics needed so if y",
-          "actual": "Negative",
+          "text": "fairly balanced sentinel gameplay with sage on corrode just a bit repetitive over time the core shooting feels good yet smurf accounts in silver hold back the climb right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "just climbed two divisions maining viper on split super enjoyable meta utility synergy with teammates feels smooth without breaking core aim mechanics definitely recommend trying this setup in ranked",
+          "actual": "Positive",
           "predicted": "Neutral"
         },
         {
-          "text": "cg go cs go",
+          "text": "reyna sits in an average spot on ascent right now fine in stacks tricky solo some games have great comms and tight rounds while others swing wildly in skill gap hoping the next patch smooths out matchmaking",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "yoru on bind has an interesting duelist kit though the current patch still needs fine tuning and more map variety",
+          "text": "just climbed two divisions maining sova on icebox super enjoyable meta vanguard runs quietly in the background and matches load fast with stable ping every round feels fair sharp and competitive",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "played tejo across diamond matches on corrode core mechanics are okay nothing crazy fun in short sessions while long ranked grinds can feel tiring without a stack enjoyable with a squad average in solo queue",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "played iso across silver matches on corrode core mechanics are okay nothing crazy some games have great comms and tight rounds while others swing wildly in skill gap right in the middle for me this act",
           "actual": "Neutral",
           "predicted": "Positive"
         },
         {
-          "text": "gekko on sunset has an interesting initiator kit though the current patch still needs fine tuning and more map variety",
+          "text": "valorant is still fun with friends when running brimstone on abyss but needs polish fun in short sessions while long ranked grinds can feel tiring without a stack hoping the next patch smooths out matchmaking",
           "actual": "Neutral",
           "predicted": "Positive"
+        },
+        {
+          "text": "solid gunplay on icebox with killjoy yet matchmaking consistency still fluctuates some games have great comms and tight rounds while others swing wildly in skill gap worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "huge fan of viper on breeze smooth utility combos and crisp gunplay even solo queue feels much cleaner when you play around viper s controller timings worth every hour spent mastering lineups",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "played tejo across gold matches on haven core mechanics are okay nothing crazy some games have great comms and tight rounds while others swing wildly in skill gap good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "tried phoenix in gold on lotus interesting kit though rotations take adjustment patch notes help keep things rotating though replay tools and map voting are overdue right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "icebox plays fine with sage however the battle pass and skin prices stay steep patch notes help keep things rotating though replay tools and map voting are overdue right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "solid gunplay on corrode with hush yet matchmaking consistency still fluctuates fun in short sessions while long ranked grinds can feel tiring without a stack enjoyable with a squad average in solo queue",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "patch made deadlock awesome on corrode easily my favorite pick this act utility synergy with teammates feels smooth without breaking core aim mechanics props to the balance team for keeping corrode fresh",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "tried deadlock in ascendant on ascent interesting kit though rotations take adjustment performance is generally smooth though occasional ping spikes still show up on weekends worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "waylay is genuinely one of the best duelist picks on haven right now even solo queue feels much cleaner when you play around waylay s duelist timings props to the balance team for keeping haven fresh",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "solid gunplay on bind with viper yet matchmaking consistency still fluctuates fun in short sessions while long ranked grinds can feel tiring without a stack right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "just climbed two divisions maining sova on abyss super enjoyable meta vanguard runs quietly in the background and matches load fast with stable ping excited to see pro teams run this meta on abyss in vct",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "patch made omen awesome on pearl easily my favorite pick this act movement recoil control and sound cues are dialed in after the recent balance tuning solid gameplay loop right now",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "just climbed two divisions maining astra on pearl super enjoyable meta even solo queue feels much cleaner when you play around astra s controller timings solid gameplay loop right now",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "mixed feelings about phoenix as a duelist on lotus after the latest update some games have great comms and tight rounds while others swing wildly in skill gap worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "been grinding silver with waylay on bind since patch and it feels amazing even solo queue feels much cleaner when you play around waylay s duelist timings solid gameplay loop right now",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "solid gunplay on lotus with chamber yet matchmaking consistency still fluctuates some games have great comms and tight rounds while others swing wildly in skill gap worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "tried sova in unrated on icebox interesting kit though rotations take adjustment fun in short sessions while long ranked grinds can feel tiring without a stack right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "mixed feelings about chamber as a sentinel on icebox after the latest update fun in short sessions while long ranked grinds can feel tiring without a stack good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "solid core shooting on abyss in patch though skin prices are steep and swiftplay matchmaking is hit or miss good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "solid core shooting on breeze in patch though skin prices are steep and silver matchmaking is hit or miss hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "been grinding swiftplay with clove on split since patch and it feels amazing even solo queue feels much cleaner when you play around clove s controller timings can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "riot nailed the tactical pace on lotus and vyse feels really effective there movement recoil control and sound cues are dialed in after the recent balance tuning every round feels fair sharp and competitive",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "solid core shooting on summit in patch though skin prices are steep and radiant matchmaking is hit or miss hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "riot nailed the tactical pace on abyss and sova feels really effective there movement recoil control and sound cues are dialed in after the recent balance tuning worth every hour spent mastering lineups",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "solid gunplay on split with chamber yet matchmaking consistency still fluctuates utility timings are interesting even if a few choke points on split feel cramped worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "patch made phoenix awesome on corrode easily my favorite pick this act utility synergy with teammates feels smooth without breaking core aim mechanics solid gameplay loop right now",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "played yoru across competitive matches on pearl core mechanics are okay nothing crazy patch notes help keep things rotating though replay tools and map voting are overdue right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "vyse is genuinely one of the best sentinel picks on split right now utility synergy with teammates feels smooth without breaking core aim mechanics can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "sova sits in an average spot on icebox right now fine in stacks tricky solo the core shooting feels good yet smurf accounts in stack hold back the climb decent overall or out of right now",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "played astra across platinum matches on pearl core mechanics are okay nothing crazy some games have great comms and tight rounds while others swing wildly in skill gap hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "clean fps optimization and rewarding aim duels whenever i lock sova on ascent even solo queue feels much cleaner when you play around sova s initiator timings every round feels fair sharp and competitive",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "patch made killjoy awesome on icebox easily my favorite pick this act even solo queue feels much cleaner when you play around killjoy s sentinel timings worth every hour spent mastering lineups",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "huge fan of omen on breeze smooth utility combos and crisp gunplay even solo queue feels much cleaner when you play around omen s controller timings definitely recommend trying this setup in ranked",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "patch left kay o feeling alright on ascent neither overpowered nor weak utility timings are interesting even if a few choke points on ascent feel cramped decent overall or out of right now",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "really appreciate how versatile hush feels on corrode for coordinated executes even solo queue feels much cleaner when you play around hush s duelist timings every round feels fair sharp and competitive",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "really appreciate how versatile vyse feels on abyss for coordinated executes even solo queue feels much cleaner when you play around vyse s sentinel timings can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "patch left sage feeling alright on breeze neither overpowered nor weak performance is generally smooth though occasional ping spikes still show up on weekends right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "huge fan of clove on corrode smooth utility combos and crisp gunplay utility synergy with teammates feels smooth without breaking core aim mechanics can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "just climbed two divisions maining harbor on abyss super enjoyable meta movement recoil control and sound cues are dialed in after the recent balance tuning easily a top tier tactical fps experience",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "played deadlock across silver matches on bind core mechanics are okay nothing crazy performance is generally smooth though occasional ping spikes still show up on weekends right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "breach on abyss is decent in patch though the overall meta feels mixed some games have great comms and tight rounds while others swing wildly in skill gap good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "cypher sits in an average spot on lotus right now fine in stacks tricky solo patch notes help keep things rotating though replay tools and map voting are overdue right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "just climbed two divisions maining raze on bind super enjoyable meta movement recoil control and sound cues are dialed in after the recent balance tuning easily a top tier tactical fps experience",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "patch made hush awesome on lotus easily my favorite pick this act utility synergy with teammates feels smooth without breaking core aim mechanics props to the balance team for keeping lotus fresh",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "been grinding ascendant with kay o on sunset since patch and it feels amazing even solo queue feels much cleaner when you play around kay o s initiator timings every round feels fair sharp and competitive",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "played hush across radiant matches on icebox core mechanics are okay nothing crazy performance is generally smooth though occasional ping spikes still show up on weekends right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "patch made deadlock awesome on ascent easily my favorite pick this act map flow and callouts feel intuitive making every clutch round tense and exciting can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "valorant is still fun with friends when running gekko on breeze but needs polish some games have great comms and tight rounds while others swing wildly in skill gap hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "patch made vyse awesome on pearl easily my favorite pick this act the gunplay is crisp frames stay locked at fps and site holds feel super rewarding worth every hour spent mastering lineups",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "riot nailed the tactical pace on breeze and omen feels really effective there the gunplay is crisp frames stay locked at fps and site holds feel super rewarding solid gameplay loop right now",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "played sova across ascendant matches on abyss core mechanics are okay nothing crazy the core shooting feels good yet smurf accounts in ascendant hold back the climb decent overall or out of right now",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "played raze across radiant matches on lotus core mechanics are okay nothing crazy performance is generally smooth though occasional ping spikes still show up on weekends worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "fairly balanced sentinel gameplay with chamber on split just a bit repetitive over time patch notes help keep things rotating though replay tools and map voting are overdue right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "chamber is genuinely one of the best sentinel picks on bind right now even solo queue feels much cleaner when you play around chamber s sentinel timings can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "riot nailed the tactical pace on breeze and deadlock feels really effective there movement recoil control and sound cues are dialed in after the recent balance tuning worth every hour spent mastering lineups",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "hush is genuinely one of the best duelist picks on breeze right now even solo queue feels much cleaner when you play around hush s duelist timings can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "huge fan of fade on bind smooth utility combos and crisp gunplay the gunplay is crisp frames stay locked at fps and site holds feel super rewarding can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "solid gunplay on corrode with cypher yet matchmaking consistency still fluctuates performance is generally smooth though occasional ping spikes still show up on weekends worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "honestly iso is super fun and clean to play on ascent right now even solo queue feels much cleaner when you play around iso s duelist timings easily a top tier tactical fps experience",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "played veto across silver matches on haven core mechanics are okay nothing crazy performance is generally smooth though occasional ping spikes still show up on weekends worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "just climbed two divisions maining yoru on corrode super enjoyable meta the gunplay is crisp frames stay locked at fps and site holds feel super rewarding solid gameplay loop right now",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "played vyse across gold matches on abyss core mechanics are okay nothing crazy fun in short sessions while long ranked grinds can feel tiring without a stack worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "mixed feelings about harbor as a controller on abyss after the latest update patch notes help keep things rotating though replay tools and map voting are overdue good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "played tejo across radiant matches on corrode core mechanics are okay nothing crazy fun in short sessions while long ranked grinds can feel tiring without a stack right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "mixed feelings about yoru as a duelist on corrode after the latest update fun in short sessions while long ranked grinds can feel tiring without a stack hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "riot nailed the tactical pace on abyss and miks feels really effective there the gunplay is crisp frames stay locked at fps and site holds feel super rewarding excited to see pro teams run this meta on abyss in vct",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "clean fps optimization and rewarding aim duels whenever i lock astra on bind vanguard runs quietly in the background and matches load fast with stable ping can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "riot nailed the tactical pace on haven and breach feels really effective there utility synergy with teammates feels smooth without breaking core aim mechanics worth every hour spent mastering lineups",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "clean fps optimization and rewarding aim duels whenever i lock jett on abyss the gunplay is crisp frames stay locked at fps and site holds feel super rewarding excited to see pro teams run this meta on abyss in vct",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "clean fps optimization and rewarding aim duels whenever i lock sova on abyss even solo queue feels much cleaner when you play around sova s initiator timings excited to see pro teams run this meta on abyss in vct",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "clean fps optimization and rewarding aim duels whenever i lock viper on abyss movement recoil control and sound cues are dialed in after the recent balance tuning easily a top tier tactical fps experience",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "reyna sits in an average spot on icebox right now fine in stacks tricky solo some games have great comms and tight rounds while others swing wildly in skill gap good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "gekko on summit is decent in patch though the overall meta feels mixed the core shooting feels good yet smurf accounts in competitive hold back the climb decent overall or out of right now",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "tried iso in radiant on corrode interesting kit though rotations take adjustment some games have great comms and tight rounds while others swing wildly in skill gap right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "really appreciate how versatile phoenix feels on pearl for coordinated executes even solo queue feels much cleaner when you play around phoenix s duelist timings props to the balance team for keeping pearl fresh",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "clean fps optimization and rewarding aim duels whenever i lock sage on abyss utility synergy with teammates feels smooth without breaking core aim mechanics worth every hour spent mastering lineups",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "iso on lotus is decent in patch though the overall meta feels mixed some games have great comms and tight rounds while others swing wildly in skill gap good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "huge fan of killjoy on lotus smooth utility combos and crisp gunplay utility synergy with teammates feels smooth without breaking core aim mechanics can t stop queuing with friends this episode",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "mixed feelings about vyse as a sentinel on lotus after the latest update performance is generally smooth though occasional ping spikes still show up on weekends right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "just climbed two divisions maining jett on fracture super enjoyable meta even solo queue feels much cleaner when you play around jett s duelist timings worth every hour spent mastering lineups",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "patch made fade awesome on sunset easily my favorite pick this act movement recoil control and sound cues are dialed in after the recent balance tuning easily a top tier tactical fps experience",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "clean fps optimization and rewarding aim duels whenever i lock kay o on ascent even solo queue feels much cleaner when you play around kay o s initiator timings every round feels fair sharp and competitive",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "been grinding premier with raze on bind since patch and it feels amazing even solo queue feels much cleaner when you play around raze s duelist timings props to the balance team for keeping bind fresh",
+          "actual": "Positive",
+          "predicted": "Neutral"
+        },
+        {
+          "text": "fairly balanced controller gameplay with harbor on pearl just a bit repetitive over time some games have great comms and tight rounds while others swing wildly in skill gap good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "fairly balanced duelist gameplay with jett on abyss just a bit repetitive over time utility timings are interesting even if a few choke points on abyss feel cramped good foundation just needs a couple quality of life updates",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "hush sits in an average spot on haven right now fine in stacks tricky solo patch notes help keep things rotating though replay tools and map voting are overdue right in the middle for me this act",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "valorant is still fun with friends when running iso on corrode but needs polish performance is generally smooth though occasional ping spikes still show up on weekends enjoyable with a squad average in solo queue",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "valorant is still fun with friends when running fade on lotus but needs polish performance is generally smooth though occasional ping spikes still show up on weekends hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "just climbed two divisions maining viper on breeze super enjoyable meta movement recoil control and sound cues are dialed in after the recent balance tuning easily a top tier tactical fps experience",
+          "actual": "Positive",
+          "predicted": "Negative"
+        },
+        {
+          "text": "mixed feelings about omen as a controller on corrode after the latest update utility timings are interesting even if a few choke points on corrode feel cramped worth playing casually mixed for hardcore ranked",
+          "actual": "Neutral",
+          "predicted": "Negative"
+        },
+        {
+          "text": "gekko on bind is decent in patch though the overall meta feels mixed some games have great comms and tight rounds while others swing wildly in skill gap hoping the next patch smooths out matchmaking",
+          "actual": "Neutral",
+          "predicted": "Positive"
+        },
+        {
+          "text": "veto is genuinely one of the best sentinel picks on haven right now even solo queue feels much cleaner when you play around veto s sentinel timings worth every hour spent mastering lineups",
+          "actual": "Positive",
+          "predicted": "Negative"
         }
       ]
     },
     "Four-model ensemble": {
-      "accuracy": 0.888,
+      "accuracy": 0.998,
       "training_time_seconds": 0.0,
-      "inference_latency_ms_per_review": 62.33204079999996,
-      "test_samples": 250,
+      "inference_latency_ms_per_review": 23.26344624000194,
+      "test_samples": 2500,
       "validation_macro_f1": null,
       "classification_report": {
         "Negative": {
-          "precision": 0.8620689655172413,
-          "recall": 0.9090909090909091,
-          "f1-score": 0.8849557522123894,
-          "support": 110.0
+          "precision": 0.9933155080213903,
+          "recall": 1.0,
+          "f1-score": 0.9966465459423206,
+          "support": 743.0
         },
         "Neutral": {
-          "precision": 0.782608695652174,
-          "recall": 0.6428571428571429,
-          "f1-score": 0.7058823529411765,
-          "support": 28.0
+          "precision": 1.0,
+          "recall": 0.9956331877729258,
+          "f1-score": 0.9978118161925602,
+          "support": 458.0
         },
         "Positive": {
-          "precision": 0.9369369369369369,
-          "recall": 0.9285714285714286,
-          "f1-score": 0.9327354260089686,
-          "support": 112.0
+          "precision": 1.0,
+          "recall": 0.9976905311778291,
+          "f1-score": 0.9988439306358381,
+          "support": 1299.0
         },
-        "accuracy": 0.888,
+        "accuracy": 0.998,
         "macro avg": {
-          "precision": 0.8605381993687841,
-          "recall": 0.8268398268398268,
-          "f1-score": 0.8411911770541782,
-          "support": 250.0
+          "precision": 0.99777183600713,
+          "recall": 0.9977745729835851,
+          "f1-score": 0.9977674309235729,
+          "support": 2500.0
         },
         "weighted avg": {
-          "precision": 0.8867102664883774,
-          "recall": 0.888,
-          "f1-score": 0.8863048253548811,
-          "support": 250.0
+          "precision": 0.9980133689839571,
+          "recall": 0.998,
+          "f1-score": 0.9980017845389161,
+          "support": 2500.0
         }
       },
       "confusion_matrix": [
         [
-          100,
-          5,
-          5
-        ],
-        [
-          8,
-          18,
-          2
-        ],
-        [
-          8,
+          743,
           0,
-          104
+          0
+        ],
+        [
+          2,
+          456,
+          0
+        ],
+        [
+          3,
+          0,
+          1296
         ]
       ],
       "error_examples": [
         {
-          "text": "killjoy feels clean and powerful on icebox and the recent patch made killjoy even more useful for coordinated squads",
+          "text": "its basically nothing new to the fps genre and its similar to the other games of the fps series i guess in our days there is pretty difficult to create something new and astonishing its can be played a couple of hours but to play in it like grinding something is really boring i somehow getting tired of anticheat being ass and i need to uninstall it to play other games without issues why it cant be like battleye",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "i really really wanted to love valorant for i am looking for a game that is like csgo but isn t csgo well sadly riots game is not that i have been reinforced in my believes that abilities have no place in shooters not to mention in defusal game modes especially when said abilities replace utility leaving some characters without the tools to deal with a specific situation while others have such a strong toolkit that its outright unfair which defeats the competitive point imo you have a guy like c",
-          "actual": "Neutral",
-          "predicted": "Positive"
-        },
-        {
-          "text": "without a choice of maps the game is unplayable i m tired of playing only on ascent",
+          "text": "as a hardcore shooter fan since cs i appreciated riot s attempt to create a new competitive fps in different guises unfortunately at present the game has very strong inconsistencies in the management of the basic mechanics that make a competitive and long lasting fps like cs is a title aimed particularly at a specific target certainly more modern and the matches are much more random than what i could have expected given by some absolutely rng components and it is in fact here where valorant show",
           "actual": "Neutral",
           "predicted": "Negative"
         },
         {
-          "text": "personally i just find it boring this was not ready to be launched they should actually go back to the closed beta when it launched the battle pass was broken the missions were broken queues filled with afk and leavers you can get randomly permabanned for no reason while actual cheaters get nothing also dollar skins seriously what the heck is going on with this game i wanted to love it so badly i wanted it to be my next addiction the next big game that i play but it launches no one talks about i",
+          "text": "i m a casual gamer who now and then enjoy a fps with valorant i m torn i do have fun playing it but not as fun as i would like for me the movement is clunky and it doesn t feel good when you hit an enemy compared to apex legends in these regards it s like night and day your opinion on the graphics are of course subjective and i don t mind it but it does feel unfinished unpolished maybe it s just not for me but i feel it has potential to be a game for everyone",
           "actual": "Neutral",
           "predicted": "Negative"
         },
         {
-          "text": "the graphics are a huge problem with this game apart from all the bugs and server issues but these are something that can be solved over time and i trust the devs to do that the main and huge issue with this game is that the maps are repetitive most of the rooms feel the same everything is just one pattern the gameplay isn t fun because csgo is a better option the abilities are either overpowered or useless and it does not feel natural in the game just play csgo which is a great refined game or ",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "valorant gets everything about overwatch and cs wrong lets be clear the game is not bad its just not good the good it works well things are smooth and the art design is a huge improvement both in terms of aesthetic and visibility over cs the bad the agent skills are horribly balanced with characters like omen and jet paling in comparison to agents like sage and cypher in pair with having to buy skills the skills don t deliver fun when you get stuck with an agent cs style gameplay is broken by th",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "same nothing new to highlight vs the others shooting games booooooooooring",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "valorant has kept me entertained for hours with no signs of slowing down love additions made post launch",
+          "text": "ah esos seres especiales de csgo con el review bombing que le est n dando a este juego en fin la hipotenusa les lleg el verdugo as que dejen de fastidiar le pondr a un si no estuviese vanguard lo dem s todo chill",
           "actual": "Positive",
           "predicted": "Negative"
         },
         {
-          "text": "i have only had probably hours of experience in this game but over hundreds in csgo valorant feels like a mismatch of csgo and overwatch the anti cheat definitely puts me off though",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "people are so dumb that they dont understand that the character has to be slower than cs go simply because the maps are smaller the game has no cheaters different from cs go ticks servers nice shot reg",
+          "text": "didn t really understand the bashing having fun rn on the game personally i dislike playing cs and came to valorant thinking i will hate the game but i found the heroes and abilities gameplay freshening it s a really slow fps with a short ttk the maps are good even if not innovative the new one is better graphics are subjectives but didn t bothered me i experimented a little bug at the release with unattributed reward but it was fastly patched for me didn t got any other problem in the end the g",
           "actual": "Positive",
           "predicted": "Negative"
-        },
-        {
-          "text": "good things game is fun bad things excessive rubber banding really bad hit reg and a lot of desync with above fps and ping if you ask for real just check centenes of topics on reddit and videos talking about right now the game is in a really bad spot",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "i have played through the beta the game itself is fun enough and controls well however there are two reasons i have to give it a zero firstly the community is somehow worse than league of legends and cs go secondly the most egregious problem is the anti cheat who thought that creating a kernel level security driver is a good idea this creates unwanted attack vector on your pc also it seems to have little benefit to stopping cheats riot should fix this and figure out a safer and smarter anti chea",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "okay i ll start off by saying some of the reviews are quiet harsh and unfair riot were going for a csgo esport competitor and i think they got that pros anti cheat does well on keeping cheaters out game runs well on a diverse range of high to low and computers subjective i personally quite like the game and map design cons the anti cheat i think it s called vanguards is very intrusive from my experience so far the abilities make it very cluttered and kinda like overwatch as a spectator esport al",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "some say it s a mix of overwatch with cs go but honestly there s no way to compare the game is fun to a certain extent but doesn t deliver anything new to the fps market but the most important thing is that it s not good to shoot with the weapons just like in other popular games just don t convince",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i don t even know why they hate this game",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "the game may be fun because it brought the good points of successful games but this game has no originality vanguard errors in character setting the ninja character is korean huh there are many problems like above in a nutshell it s a lazy game",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "the game does not feel up to par to other fps out there it is clunky slow the aim must be improved and the fact that your character gets slowed when hit makes it harder to walk side to side and try to deflect the skills are a nice add but if they re not granades they re not important there are better fps out there valorant has gotta improve to compete with those",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "hush feels clean and powerful on sunset and the recent patch made hush even more useful for coordinated squads",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "veto feels clean and powerful on corrode and the recent patch made veto even more useful for coordinated squads",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "yo csgo frogs are mad big time haha valorant cs don t forget to stay mad haters stay mad i m right",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "i understand that the gameplay mechanics can have a lot of depth and if i could ve gotten over my initial impressions maybe i would ve loved this game the eula agreement made me laugh the tutorial is well done but after that the game went downhill for me like a bad trip the user interface is not intuitive after the tutorial you try to connect to a multiplayer game but find out you can t because you need to switch to open play picking a character is not untuitive you click them and then a button ",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "it may come across as trolling but what most people seek is change the game itself is not terrible i think it has lots of potential and is super fun however i did not ask for a free malware that will allow me to play the game kill my ventilation system almost overheating my pc my pretty lights i m being petty here but you get the idea so i tried closing it discovering that if i ever wanted to play during this session i d have to reboot my pc this among other things make vanguard a really negativ",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "as someone who has played the beta i can say the game is okay it doesn t feel very original or new the characters aren t original the gunplay feels like counterstrike and there s no clear narrative or story being presented to the player is it a counterstrike clone i would say it is with a bit of overwatch thrown in the mix",
-          "actual": "Neutral",
-          "predicted": "Negative"
-        },
-        {
-          "text": "jogo na primeira partida muito divertido mas depois ficar muito enjoativo partidas no m ximo que eu joguei e me diverti o game e muito competitivo e tem poucos personagens",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "if this game was released when league of legends did it would be awesome now it s just like a flash explorer based game everything in this game is basic animations map environment damn even champions are just like a basic concept made by an indie company",
-          "actual": "Negative",
-          "predicted": "Positive"
-        },
-        {
-          "text": "riot games cs go death match",
-          "actual": "Positive",
-          "predicted": "Negative"
-        },
-        {
-          "text": "could be good but isn t you got the problem of solo queue but amplified by a ton you got skins worth an insane amount of money you got an anti cheat that is killing people s computes the came could go somewhere but i don t think it will",
-          "actual": "Negative",
-          "predicted": "Neutral"
-        },
-        {
-          "text": "cg go cs go",
-          "actual": "Neutral",
-          "predicted": "Positive"
         }
       ]
     }

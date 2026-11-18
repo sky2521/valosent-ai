@@ -26,7 +26,16 @@ MATCH_MODEL_PATH = MODELS_DIR / "analytics_model.pkl"
 
 LOGGER = logging.getLogger(__name__)
 MAX_LENGTH = 200
-MAX_BATCH_REVIEWS = 200
+MAX_BATCH_REVIEWS = 2000
+
+
+def compute_derived_score(probabilities: np.ndarray) -> float:
+    """Convert calibrated [Negative, Neutral, Positive] probabilities into a 0.0-10.0 derived score."""
+    probs = np.asarray(probabilities, dtype=float)
+    if probs.size != 3 or not np.isfinite(probs).all():
+        return 5.5
+    score = 1.6 * float(probs[0]) + 5.5 * float(probs[1]) + 9.2 * float(probs[2])
+    return round(float(np.clip(score, 0.0, 10.0)), 1)
 
 _ASSET_LOCK = threading.Lock()
 _MODEL_ASSETS: dict | None = None
@@ -149,6 +158,7 @@ def _predict_svm(review: str, assets: dict) -> tuple[np.ndarray, dict]:
     return probabilities, {
         "label": label,
         "confidence": round(confidence, 4) if confidence is not None else None,
+        "derived_score": compute_derived_score(probabilities),
         "probabilities": _probabilities_dict(probabilities),
     }
 
@@ -167,6 +177,7 @@ def _predict_lstm(review: str, assets: dict) -> tuple[np.ndarray, dict]:
     return probabilities, {
         "label": SENTIMENT_LABELS[label_index],
         "confidence": round(float(probabilities[label_index]), 4),
+        "derived_score": compute_derived_score(probabilities),
         "probabilities": _probabilities_dict(probabilities),
     }
 
@@ -180,6 +191,7 @@ def _predict_naive_bayes(review: str, assets: dict) -> tuple[np.ndarray, dict]:
     return probabilities, {
         "label": SENTIMENT_LABELS[label_index],
         "confidence": round(float(probabilities[label_index]), 4),
+        "derived_score": compute_derived_score(probabilities),
         "probabilities": _probabilities_dict(probabilities),
     }
 
@@ -200,6 +212,7 @@ def _predict_distilbert(review: str, assets: dict) -> tuple[np.ndarray, dict]:
     return probabilities, {
         "label": SENTIMENT_LABELS[label_index],
         "confidence": round(float(probabilities[label_index]), 4),
+        "derived_score": compute_derived_score(probabilities),
         "probabilities": _probabilities_dict(probabilities),
     }
 
@@ -303,12 +316,13 @@ def combine_ensemble_scores(
     selected_model = ensemble_name if len(scores) > 1 else active_names[0]
     ensemble_result = {
         "label": ensemble_label,
-        "confidence": None,
+        "confidence": round(float(ensemble_probs[ensemble_index]), 4),
         "score": (
             round(float(ensemble_probs[ensemble_index]), 4)
             if all(result["confidence"] is not None for result in model_results.values())
             else None
         ),
+        "derived_score": compute_derived_score(ensemble_probs),
         "probabilities": _probabilities_dict(ensemble_probs),
         "agreement": sum(label == ensemble_label for label in model_predictions),
         "model_count": len(model_predictions),
@@ -440,16 +454,22 @@ def analyze_reviews_batch(
     ensemble_matrix = np.tensordot(w, stacked, axes=(0, 0))
 
     sentiment_counts = Counter()
+    score_histogram = Counter()
     agent_mentions = Counter()
+    agent_sent_map: dict[str, dict[str, float]] = {}
     map_mentions = Counter()
     topic_counts = Counter()
     topic_negative = Counter()
     items = []
+    derived_scores_all: list[float] = []
 
     for row_idx, (orig_idx, raw_text, _) in enumerate(cleaned_entries):
         probs = ensemble_matrix[row_idx]
         pred_idx = int(np.argmax(probs))
         pred_label = SENTIMENT_LABELS[pred_idx]
+        d_score = compute_derived_score(probs)
+        derived_scores_all.append(d_score)
+        score_histogram[max(0, min(10, int(round(d_score))))] += 1
         sentiment_counts[pred_label] += 1
 
         ctx = analyze_review_context(raw_text)
@@ -458,6 +478,9 @@ def analyze_reviews_batch(
         topics_hit = [tname for tname, tval in ctx["topics"].items() if tval["detected"]]
         for name in agents_hit:
             agent_mentions[name] += 1
+            bucket = agent_sent_map.setdefault(name, {"Positive": 0, "Neutral": 0, "Negative": 0, "score_sum": 0.0})
+            bucket[pred_label] += 1
+            bucket["score_sum"] += d_score
         for name in maps_hit:
             map_mentions[name] += 1
         for tname in topics_hit:
@@ -467,9 +490,11 @@ def analyze_reviews_batch(
 
         items.append({
             "index": orig_idx + 1,
-            "review": raw_text[:240],
+            "review": raw_text[:320],
             "sentiment": pred_label,
             "score": round(float(probs[pred_idx]), 4),
+            "confidence": round(float(probs[pred_idx]), 4),
+            "derived_score": d_score,
             "probabilities": _probabilities_dict(probs),
             "agents": agents_hit,
             "maps": maps_hit,
@@ -477,6 +502,19 @@ def analyze_reviews_batch(
         })
 
     total = len(items)
+    avg_derived = round(sum(derived_scores_all) / total, 2) if total else 0.0
+    agent_breakdown = []
+    for name, count in agent_mentions.most_common(12):
+        b = agent_sent_map[name]
+        agent_breakdown.append({
+            "agent": name,
+            "mentions": int(count),
+            "positive": int(b["Positive"]),
+            "neutral": int(b["Neutral"]),
+            "negative": int(b["Negative"]),
+            "avg_score": round(b["score_sum"] / count, 1) if count else 5.5,
+        })
+
     return {
         "total_submitted": len(reviews),
         "processed_count": total,
@@ -484,12 +522,15 @@ def analyze_reviews_batch(
         "truncated": len(reviews) > MAX_BATCH_REVIEWS,
         "max_batch_size": MAX_BATCH_REVIEWS,
         "models_used": active_models,
+        "average_derived_score": avg_derived,
+        "score_histogram": [{"score": s, "count": int(score_histogram[s])} for s in range(11)],
         "sentiment_counts": {label: int(sentiment_counts[label]) for label in SENTIMENT_LABELS},
         "sentiment_percentages": {
             label: round(sentiment_counts[label] / total * 100, 2) for label in SENTIMENT_LABELS
         },
-        "top_agents": [{"agent": name, "mentions": count} for name, count in agent_mentions.most_common(8)],
-        "top_maps": [{"map": name, "mentions": count} for name, count in map_mentions.most_common(8)],
+        "top_agents": [{"agent": name, "mentions": count} for name, count in agent_mentions.most_common(10)],
+        "agent_sentiment_breakdown": agent_breakdown,
+        "top_maps": [{"map": name, "mentions": count} for name, count in map_mentions.most_common(10)],
         "top_topics": [
             {"topic": name, "mentions": count, "negative_mentions": int(topic_negative[name])}
             for name, count in topic_counts.most_common()

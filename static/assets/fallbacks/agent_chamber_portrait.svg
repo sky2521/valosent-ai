@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">
+  <defs>
+    <radialGradient id="p_chamber" cx="55%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#EAB36B" stop-opacity="0.34"/>
+      <stop offset="65%" stop-color="#0F1923" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#0F1923" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#p_chamber)"/>
+  <path d="M210 180 L390 180 L430 260 L460 540 L410 780 L190 780 L140 540 L170 260 Z" fill="#EAB36B" fill-opacity="0.14" stroke="#EAB36B" stroke-opacity="0.45" stroke-width="2"/>
+  <circle cx="300" cy="145" r="52" fill="#EAB36B" fill-opacity="0.18" stroke="#EAB36B" stroke-opacity="0.55" stroke-width="2"/>
+  <line x1="80" y1="640" x2="520" y2="640" stroke="#EAB36B" stroke-opacity="0.4" stroke-width="1.5"/>
+  <text x="300" y="455" text-anchor="middle" font-family="Rajdhani, Segoe UI, Arial, sans-serif" font-size="132" font-weight="700" fill="#ECE8E1" fill-opacity="0.14" letter-spacing="10">CH</text>
+  <text x="300" y="695" text-anchor="middle" font-family="Rajdhani, Segoe UI, Arial, sans-serif" font-size="44" font-weight="700" fill="#ECE8E1" fill-opacity="0.72" letter-spacing="8">CHAMBER</text>
+  <text x="300" y="730" text-anchor="middle" font-family="Rajdhani, Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#EAB36B" letter-spacing="5">// SENTINEL PROTOCOL</text>
+</svg>

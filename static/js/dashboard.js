@@ -1,6 +1,161 @@
 const page = document.body.dataset.page;
 const charts = new Map();
-const palette = ['#ff4655', '#d4d0d1', '#eab36b', '#a3a0a3', '#f18b50', '#777579'];
+const palette = ['#ff4655', '#ece8e1', '#eab36b', '#4cd4a9', '#64b5f6', '#9eaab7'];
+
+let VALOSENT_ASSETS = { agents: {}, maps: {}, roles: {} };
+let _activeBackdropSlot = 0;
+
+function _normAssetKey(name) {
+  return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+async function loadValorantAssets() {
+  try {
+    VALOSENT_ASSETS = await getJson('/api/assets');
+  } catch (err) {
+    console.warn('Could not load /api/assets:', err);
+  }
+}
+
+function getAgentAsset(agentName) {
+  const map = VALOSENT_ASSETS.agents || {};
+  if (map[agentName]) return map[agentName];
+  const key = _normAssetKey(agentName);
+  const found = Object.values(map).find((item) => _normAssetKey(item.agent) === key);
+  if (found) return found;
+  const slug = key || 'agent';
+  return {
+    agent: agentName,
+    icon: `/static/assets/fallbacks/agent_${slug}_icon.svg`,
+    fallback_icon: `/static/assets/fallbacks/agent_${slug}_icon.svg`,
+    portrait: `/static/assets/fallbacks/agent_${slug}_portrait.svg`,
+    fallback_portrait: `/static/assets/fallbacks/agent_${slug}_portrait.svg`,
+    background: null,
+    role_icon: '/static/assets/fallbacks/role_duelist.svg',
+    fallback_role_icon: '/static/assets/fallbacks/role_duelist.svg',
+    accent: '#FF4655',
+  };
+}
+
+function getMapAsset(mapName) {
+  const map = VALOSENT_ASSETS.maps || {};
+  if (map[mapName]) return map[mapName];
+  const key = _normAssetKey(mapName);
+  const found = Object.values(map).find((item) => _normAssetKey(item.map) === key);
+  if (found) return found;
+  const slug = key || 'ascent';
+  return {
+    map: mapName,
+    splash: `/static/assets/fallbacks/map_${slug}_splash.svg`,
+    fallback_splash: `/static/assets/fallbacks/map_${slug}_splash.svg`,
+    banner: `/static/assets/fallbacks/map_${slug}_splash.svg`,
+    coordinates: '// VALOSENT SECTOR',
+    accent: '#FF4655',
+  };
+}
+
+function getRoleAsset(roleName) {
+  const roles = VALOSENT_ASSETS.roles || {};
+  if (roles[roleName]) return roles[roleName];
+  const key = _normAssetKey(roleName);
+  return Object.values(roles).find((item) => _normAssetKey(item.role) === key) || null;
+}
+
+function createAgentAvatarElement(agentName, className = 'agent-avatar-xs') {
+  const asset = getAgentAsset(agentName);
+  const img = document.createElement('img');
+  img.className = className;
+  img.alt = agentName || 'Agent';
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  img.src = asset.icon || asset.fallback_icon;
+  img.onerror = () => {
+    if (img.dataset.fallbackApplied) return;
+    img.dataset.fallbackApplied = '1';
+    img.src = asset.fallback_icon;
+  };
+  return img;
+}
+
+function setHudBackdrop(primaryUrl, fallbackUrl = '') {
+  const layerA = document.getElementById('hud-backdrop-a');
+  const layerB = document.getElementById('hud-backdrop-b');
+  if (!layerA || !layerB || !primaryUrl) return;
+
+  const applyUrl = (url) => {
+    const incoming = _activeBackdropSlot === 0 ? layerA : layerB;
+    const outgoing = _activeBackdropSlot === 0 ? layerB : layerA;
+    _activeBackdropSlot = _activeBackdropSlot === 0 ? 1 : 0;
+    incoming.style.backgroundImage = `url("${url}")`;
+    requestAnimationFrame(() => {
+      incoming.classList.add('visible');
+      outgoing.classList.remove('visible');
+    });
+  };
+
+  const probe = new Image();
+  probe.onload = () => applyUrl(primaryUrl);
+  probe.onerror = () => {
+    if (fallbackUrl) applyUrl(fallbackUrl);
+  };
+  probe.src = primaryUrl;
+}
+
+function setMapBackdrop(mapName) {
+  if (!mapName || String(mapName).toLowerCase() === 'all') {
+    const fallbackMap = getMapAsset('Summit');
+    setHudBackdrop(fallbackMap.splash, fallbackMap.fallback_splash);
+    return fallbackMap;
+  }
+  const asset = getMapAsset(mapName);
+  setHudBackdrop(asset.splash, asset.fallback_splash);
+  return asset;
+}
+
+function renderMapHeroBanner(prefix, mapName, topAgents = []) {
+  const banner = document.getElementById(`${prefix}-hero-banner`);
+  const coordsEl = document.getElementById(`${prefix}-hero-coords`);
+  const nameEl = document.getElementById(`${prefix}-hero-name`);
+  const subEl = document.getElementById(`${prefix}-hero-sub`);
+  const agentsEl = document.getElementById(`${prefix}-hero-top-agents`);
+  if (!banner) return;
+
+  const asset = getMapAsset(mapName);
+  banner.style.backgroundImage = `url("${asset.splash}"), url("${asset.fallback_splash}")`;
+  if (coordsEl) coordsEl.textContent = `// SECTOR ${String(mapName || '').toUpperCase()} · ${asset.coordinates || 'VALOSENT PROTOCOL'}`;
+  if (nameEl) nameEl.textContent = mapName;
+  if (subEl) {
+    subEl.textContent = prefix === 'recommend'
+      ? `Official VALORANT map intel · Top meta recommendations on ${mapName} (2021–2026).`
+      : `Official VALORANT map intel · Historical VCT pick & win performance on ${mapName}.`;
+  }
+  if (agentsEl) {
+    agentsEl.replaceChildren();
+    topAgents.slice(0, 5).forEach((entry) => {
+      const name = entry.agent || entry.agent_name;
+      if (!name) return;
+      const chip = document.createElement('a');
+      chip.className = 'map-meta-agent-chip';
+      chip.href = `/agents/${encodeURIComponent(name)}`;
+      chip.title = `Inspect ${name} dossier`;
+      const img = createAgentAvatarElement(name, '');
+      const textWrap = document.createElement('div');
+      const strong = document.createElement('strong');
+      strong.textContent = name;
+      const small = document.createElement('small');
+      if (entry.score !== undefined && entry.score !== null) {
+        small.textContent = `${formatMetric(entry.score)} pts`;
+      } else if (entry.map_win_rate !== undefined && entry.map_win_rate !== null) {
+        small.textContent = `${formatPercent(entry.map_win_rate)} WR`;
+      } else {
+        small.textContent = entry.role || 'META';
+      }
+      textWrap.append(strong, small);
+      chip.append(img, textWrap);
+      agentsEl.append(chip);
+    });
+  }
+}
 
 async function getJson(url) {
   const response = await fetch(url, { headers: { Accept: 'application/json' } });
@@ -76,6 +231,15 @@ function renderTable(body, rows, columns, emptyMessage = 'Insufficient data for 
         pill.className = 'role-pill';
         pill.textContent = value;
         cell.append(pill);
+      } else if (column.agentAvatar && value && value !== 'N/A') {
+        const wrap = column.link ? document.createElement('a') : document.createElement('span');
+        wrap.className = 'agent-cell-inline';
+        if (column.link) wrap.href = column.link(item);
+        const img = createAgentAvatarElement(value, 'agent-avatar-xs');
+        const label = document.createElement('span');
+        label.textContent = value;
+        wrap.append(img, label);
+        cell.append(wrap);
       } else if (column.link) {
         const link = document.createElement('a');
         link.href = column.link(item);
@@ -560,6 +724,7 @@ async function initializeDashboard() {
   renderSentimentChart('dashboard-sentiment-chart', 'sentiment-legend', sentiment);
 
   const updateMap = async () => {
+    setMapBackdrop(mapSelect.value);
     const result = await getJson(`/api/agent-map-stats?map=${encodeURIComponent(mapSelect.value)}`);
     const rows = result.stats.slice(0, 10);
     renderChart('dashboard-agent-chart', {
@@ -568,13 +733,13 @@ async function initializeDashboard() {
         labels: rows.map((item) => item.agent_name),
         datasets: [
           { label: 'Pick rate', data: rows.map((item) => item.pick_rate), backgroundColor: '#ff4655', borderRadius: 2 },
-          { label: 'Map win rate', data: rows.map((item) => item.map_win_rate), backgroundColor: '#d4d0d1', borderRadius: 2 },
+          { label: 'Map win rate', data: rows.map((item) => item.map_win_rate), backgroundColor: '#ece8e1', borderRadius: 2 },
         ],
       },
       options: barOptions(true),
     });
     renderTable(document.getElementById('dashboard-agent-table'), rows, [
-      { value: (item) => item.agent_name, link: (item) => `/agents/${encodeURIComponent(item.agent_name)}` },
+      { value: (item) => item.agent_name, link: (item) => `/agents/${encodeURIComponent(item.agent_name)}`, agentAvatar: true },
       { value: (item) => item.role || 'N/A', rolePill: true },
       { value: (item) => formatNumber(item.appearances) },
       { value: (item) => formatPercent(item.pick_rate) },
@@ -628,17 +793,19 @@ async function initializeMaps() {
   });
   const update = async () => {
     const mapName = mapSelect.value;
+    setMapBackdrop(mapName);
     const [map, stats] = await Promise.all([
       getJson(`/api/map/${encodeURIComponent(mapName)}`),
       getJson(`/api/agent-map-performance?map=${encodeURIComponent(mapName)}&role=${encodeURIComponent(roleSelect.value)}&side=${encodeURIComponent(side)}`),
     ]);
     const sorted = stats.stats;
+    renderMapHeroBanner('map', map.map, sorted.slice(0, 5));
     document.getElementById('map-group-count').textContent = formatNumber(map.map_groups);
     document.getElementById('map-pick-count').textContent = formatNumber(map.player_agent_picks);
     document.getElementById('map-agent-count').textContent = formatNumber(sorted.length);
     document.getElementById('map-table-title').textContent = `${map.map} · ${roleSelect.value} · ${side === 'both' ? 'overall' : `${side} ACS`}`;
     renderTable(document.getElementById('map-agent-table'), sorted, [
-      { value: (item) => item.agent_name, link: (item) => `/agents/${encodeURIComponent(item.agent_name)}` },
+      { value: (item) => item.agent_name, link: (item) => `/agents/${encodeURIComponent(item.agent_name)}`, agentAvatar: true },
       { value: (item) => item.role || 'N/A', rolePill: true },
       { value: (item) => formatNumber(item.appearances) },
       { value: (item) => formatPercent(item.pick_rate) },
@@ -669,18 +836,108 @@ async function initializeMaps() {
 async function initializeAgents() {
   const { agents } = await getJson('/api/agent-catalog');
   const select = document.getElementById('agent-filter');
+  const stripEl = document.getElementById('agent-roster-strip');
   const names = agents.map((item) => item.agent);
-  setOptions(select, names, { selected: document.body.dataset.selectedAgent || names[0] });
+  setOptions(select, names, { selected: document.body.dataset.selectedAgent || (names.includes('Veto') ? 'Veto' : names[0]) });
   if (!select.value) return;
+
+  const syncStripActive = (activeName) => {
+    if (!stripEl) return;
+    stripEl.querySelectorAll('.agent-strip-btn').forEach((btn) => {
+      const isActive = btn.dataset.agent === activeName;
+      btn.classList.toggle('active', isActive);
+      if (isActive) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    });
+  };
+
+  if (stripEl) {
+    stripEl.replaceChildren();
+    agents.forEach((item) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'agent-strip-btn';
+      btn.dataset.agent = item.agent;
+      btn.title = `${item.agent} (${item.role})`;
+      btn.append(createAgentAvatarElement(item.agent, ''), document.createTextNode(item.agent));
+      btn.addEventListener('click', () => {
+        select.value = item.agent;
+        update().catch((error) => notify(error.message));
+      });
+      stripEl.append(btn);
+    });
+  }
+
   const update = async () => {
     const result = await getJson(`/api/agents/${encodeURIComponent(select.value)}`);
     const historical = result.historical;
     const maps = historical?.maps || [];
     const overall = historical?.overall;
     const review = result.review_sentiment;
+    const agentAsset = result.assets || getAgentAsset(result.agent);
+    syncStripActive(result.agent);
+
+    // Dynamic full-body portrait, background emblem, role icon & mini-avatar in Agent Dossier Hero
+    const heroEl = document.getElementById('agent-profile-hero');
+    const portraitEl = document.getElementById('agent-hero-portrait');
+    const bgEl = document.getElementById('agent-hero-bg');
+    const avatarEl = document.getElementById('agent-avatar-img');
+    const roleMarkEl = document.getElementById('agent-role-mark');
+    const roleIconEl = document.getElementById('agent-role-icon');
+
+    if (heroEl && agentAsset.accent) {
+      heroEl.style.setProperty('--agent-accent', `${agentAsset.accent}55`);
+    }
+    if (portraitEl) {
+      portraitEl.hidden = false;
+      portraitEl.dataset.fallbackApplied = '';
+      portraitEl.alt = `${result.agent} full portrait`;
+      portraitEl.src = agentAsset.portrait || agentAsset.fallback_portrait;
+      portraitEl.onerror = () => {
+        if (portraitEl.dataset.fallbackApplied) return;
+        portraitEl.dataset.fallbackApplied = '1';
+        portraitEl.src = agentAsset.fallback_portrait;
+      };
+    }
+    if (bgEl) {
+      if (agentAsset.background) {
+        bgEl.hidden = false;
+        bgEl.src = agentAsset.background;
+        bgEl.onerror = () => { bgEl.hidden = true; };
+      } else {
+        bgEl.hidden = true;
+      }
+    }
+    if (avatarEl) {
+      avatarEl.hidden = false;
+      avatarEl.dataset.fallbackApplied = '';
+      avatarEl.alt = `${result.agent} icon`;
+      avatarEl.src = agentAsset.icon || agentAsset.fallback_icon;
+      avatarEl.onerror = () => {
+        if (avatarEl.dataset.fallbackApplied) return;
+        avatarEl.dataset.fallbackApplied = '1';
+        avatarEl.src = agentAsset.fallback_icon;
+      };
+      if (roleMarkEl) roleMarkEl.hidden = true;
+    }
+    if (roleIconEl) {
+      roleIconEl.hidden = false;
+      roleIconEl.dataset.fallbackApplied = '';
+      roleIconEl.alt = `${result.role || 'Agent'} icon`;
+      roleIconEl.src = agentAsset.role_icon || agentAsset.fallback_role_icon;
+      roleIconEl.onerror = () => {
+        if (roleIconEl.dataset.fallbackApplied) return;
+        roleIconEl.dataset.fallbackApplied = '1';
+        roleIconEl.src = agentAsset.fallback_role_icon;
+      };
+    }
+
+    // Subtle page backdrop synced to the agent's Best Qualified Map
+    const backdropMap = result.best_maps?.[0]?.map || 'Summit';
+    setMapBackdrop(backdropMap);
+
     document.getElementById('agent-name').textContent = result.agent;
-    document.getElementById('agent-role').textContent = result.role || 'Role unavailable';
-    document.getElementById('agent-role-mark').textContent = (result.role || 'NA').slice(0, 2).toUpperCase();
+    document.getElementById('agent-role').textContent = (result.role || 'Role unavailable').toUpperCase();
+    if (roleMarkEl) roleMarkEl.textContent = (result.role || 'NA').slice(0, 2).toUpperCase();
     document.getElementById('agent-appearances').textContent = overall ? formatNumber(overall.appearances) : 'N/A';
     document.getElementById('agent-pick-rate').textContent = overall ? formatPercent(overall.pick_rate) : 'N/A';
     document.getElementById('agent-win-rate').textContent = overall?.map_win_rate === null || overall?.map_win_rate === undefined ? 'N/A' : formatPercent(overall.map_win_rate);
@@ -688,6 +945,8 @@ async function initializeAgents() {
     document.getElementById('agent-defense-acs').textContent = overall?.defense_acs_samples ? `${formatMetric(overall.defense_acs_median)} · n=${formatNumber(overall.defense_acs_samples)}` : 'N/A';
     document.getElementById('agent-best-map').textContent = result.best_maps?.[0]?.map || 'Insufficient data';
     document.getElementById('agent-worst-map').textContent = result.worst_maps?.[0]?.map || 'Insufficient data';
+    const heroMentions = document.getElementById('agent-hero-mentions');
+    if (heroMentions) heroMentions.textContent = formatNumber(review?.total_mentions || 0);
     document.getElementById('agent-positive').textContent = review?.total_mentions ? formatPercent(review.positive_percentage / 100) : 'N/A';
     document.getElementById('agent-neutral').textContent = review?.total_mentions ? formatPercent(review.neutral_percentage / 100) : 'N/A';
     document.getElementById('agent-negative').textContent = review?.total_mentions ? formatPercent(review.negative_percentage / 100) : 'N/A';
@@ -783,7 +1042,9 @@ async function initializeRecommendations() {
   update = async () => {
     const mapName = mapSelect.value;
     const role = roleSelect.value;
+    setMapBackdrop(mapName);
     const result = await getJson(`/api/recommend?map=${encodeURIComponent(mapName)}&side=${side}&role=${encodeURIComponent(role)}`);
+    renderMapHeroBanner('recommend', mapName, result.recommendations.slice(0, 5));
     document.getElementById('recommend-title').textContent = `${mapName} · ${role} · ${side}`;
     document.getElementById('recommendation-method').textContent = side === 'both'
       ? 'Sorted by Wilson 95% lower bound for historical map win rate; minimum 20 agent-map picks. This is not a causal agent effect.'
@@ -799,7 +1060,8 @@ async function initializeRecommendations() {
       const top = document.createElement('div');
       top.className = 'recommendation-top';
       const title = document.createElement('strong');
-      title.textContent = `#${item.rank} ${item.agent} · ${item.role}`;
+      title.className = 'agent-cell-inline';
+      title.append(createAgentAvatarElement(item.agent, 'agent-avatar-sm'), document.createTextNode(`#${item.rank} ${item.agent} · ${item.role}`));
       const score = document.createElement('span');
       score.className = 'recommendation-score';
       score.textContent = `${formatMetric(item.score)} pts`;
@@ -836,7 +1098,8 @@ async function initializeRecommendations() {
       lineup.className = 'composition-agents';
       item.composition.split(' | ').forEach((agent) => {
         const chip = document.createElement('span');
-        chip.textContent = agent;
+        chip.className = 'agent-cell-inline';
+        chip.append(createAgentAvatarElement(agent, 'agent-avatar-xs'), document.createTextNode(agent));
         lineup.append(chip);
       });
       card.append(summary, lineup);
@@ -847,7 +1110,7 @@ async function initializeRecommendations() {
     if (!synergyAgent.value) return;
     const result = await getJson(`/api/agent-synergy?agent=${encodeURIComponent(synergyAgent.value)}&map=${encodeURIComponent(mapName)}`);
     renderTable(document.getElementById('synergy-table'), result.pairings, [
-      { value: (item) => item.partner },
+      { value: (item) => item.partner, link: (item) => `/agents/${encodeURIComponent(item.partner)}`, agentAvatar: true },
       { value: (item) => item.map },
       { value: (item) => formatNumber(item.appearances) },
       { value: (item) => formatPercent(item.win_rate) },
@@ -883,13 +1146,34 @@ function initializeDraftSimulator(mapSelect, agentNames) {
     Sunset: [['Breach', 'Clove', 'Cypher', 'Gekko', 'Neon'], ['Clove', 'Cypher', 'Gekko', 'Hush', 'Tejo']],
     Abyss: [['Astra', 'Cypher', 'Jett', 'Sova', 'Vyse'], ['Astra', 'Cypher', 'Sova', 'Veto', 'Waylay']],
     Corrode: [['Hush', 'Miks', 'Tejo', 'Veto', 'Yoru'], ['Miks', 'Phoenix', 'Tejo', 'Veto', 'Waylay']],
+    Summit: [['Miks', 'Sova', 'Tejo', 'Veto', 'Waylay'], ['Fade', 'Jett', 'KAY/O', 'Omen', 'Vyse']],
+  };
+
+  const renderDraftAvatars = () => {
+    const paint = (stripId, teamSelects) => {
+      const strip = document.getElementById(stripId);
+      if (!strip) return;
+      strip.replaceChildren();
+      teamSelects.forEach((sel) => {
+        const agent = sel.value;
+        if (!agent) return;
+        const pill = document.createElement('span');
+        pill.className = 'draft-avatar-pill';
+        pill.append(createAgentAvatarElement(agent, ''), document.createTextNode(agent));
+        strip.append(pill);
+      });
+    };
+    paint('draft-team1-avatars', t1Selects);
+    paint('draft-team2-avatars', t2Selects);
   };
 
   const applyLineups = (lineup1, lineup2) => {
     t1Selects.forEach((el, idx) => setOptions(el, agentNames, { selected: lineup1[idx] || agentNames[idx] }));
     t2Selects.forEach((el, idx) => setOptions(el, agentNames, { selected: lineup2[idx] || agentNames[idx + 5] }));
+    renderDraftAvatars();
   };
   applyLineups(defaultT1, defaultT2);
+  selects.forEach((sel) => sel.addEventListener('change', renderDraftAvatars));
 
   document.getElementById('draft-load-preset').addEventListener('click', () => {
     const preset = mapPresets[mapSelect.value] || [defaultT1, defaultT2];
@@ -1020,7 +1304,11 @@ async function initializeCompare() {
       pill.type = 'button';
       pill.className = `selected-agent-pill ${roleColorClass(entry?.role)}`;
       pill.title = `Remove ${name}`;
-      pill.innerHTML = `<span class="role-dot"></span><span>${name}</span><span class="pill-remove" aria-hidden="true">×</span>`;
+      pill.append(
+        createAgentAvatarElement(name, 'agent-avatar-xs'),
+        Object.assign(document.createElement('span'), { textContent: name }),
+        Object.assign(document.createElement('span'), { className: 'pill-remove', textContent: '×' }),
+      );
       pill.addEventListener('click', () => {
         selectedAgents = selectedAgents.filter((a) => a !== name);
         syncPickerAndCompare();
@@ -1050,7 +1338,11 @@ async function initializeCompare() {
       tile.type = 'button';
       tile.className = `agent-tile ${roleColorClass(item.role)}${isSelected ? ' selected' : ''}`;
       tile.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-      tile.innerHTML = `<span class="agent-tile-head"><span class="role-dot"></span><strong>${item.agent}</strong>${isSelected ? '<span class="tile-check">✓</span>' : ''}</span><small>${item.role}</small>`;
+      const avatar = createAgentAvatarElement(item.agent, 'agent-avatar-sm');
+      const info = document.createElement('div');
+      info.className = 'agent-tile-info';
+      info.innerHTML = `<span class="agent-tile-head"><span class="role-dot"></span><strong>${item.agent}</strong>${isSelected ? '<span class="tile-check">✓</span>' : ''}</span><small>${item.role}</small>`;
+      tile.append(avatar, info);
       tile.addEventListener('click', () => {
         if (isSelected) {
           selectedAgents = selectedAgents.filter((a) => a !== item.agent);
@@ -1080,7 +1372,10 @@ async function initializeCompare() {
     hRow.append(firstTh);
     profiles.forEach((p) => {
       const th = document.createElement('th');
-      th.textContent = `${p.agent} (${p.role})`;
+      const wrap = document.createElement('span');
+      wrap.className = 'agent-cell-inline';
+      wrap.append(createAgentAvatarElement(p.agent, 'agent-avatar-xs'), document.createTextNode(`${p.agent} (${p.role})`));
+      th.append(wrap);
       hRow.append(th);
     });
     head.append(hRow);
@@ -1146,8 +1441,9 @@ async function initializeCompare() {
     const winCounts = {};
     advantages.forEach((a) => { winCounts[a.winner] = (winCounts[a.winner] || 0) + 1; });
     const sortedLeaders = Object.entries(winCounts).sort((a, b) => b[1] - a[1]);
+    setMapBackdrop(mapSelect.value);
     const topLeader = sortedLeaders[0];
-    const scopeLabel = mapSelect.value === 'All' ? 'all 12 maps (2021–2026)' : mapSelect.value;
+    const scopeLabel = mapSelect.value === 'All' ? 'all 13 maps (2021–2026)' : mapSelect.value;
     const highlights = advantages.map((a) => `${a.winner} leads ${a.metric} (${a.metric.includes('ACS') ? `${formatMetric(a.value)} ACS` : formatPercent(a.value)})`).join(' · ');
     verdictEl.innerHTML = `
       <div class="verdict-head">
@@ -1169,7 +1465,8 @@ async function initializeCompare() {
       const label = document.createElement('span');
       label.textContent = adv.metric.toUpperCase();
       const winner = document.createElement('strong');
-      winner.textContent = `★ ${adv.winner}`;
+      winner.className = 'agent-cell-inline';
+      winner.append(createAgentAvatarElement(adv.winner, 'agent-avatar-xs'), document.createTextNode(`★ ${adv.winner}`));
       const val = document.createElement('small');
       const isAcs = adv.metric.includes('ACS');
       val.textContent = isAcs ? `${formatMetric(adv.value)} ACS` : formatPercent(adv.value);
@@ -1180,21 +1477,29 @@ async function initializeCompare() {
     // 2. Direct Head-to-Head Matrix
     renderHeadToHeadMatrix(profiles);
 
-    // 3. Side-by-Side Agent Profile Cards
+    // 3. Side-by-Side Agent Profile Cards with Official Portraits & Mini-Avatars
     const profWrap = document.getElementById('compare-profiles');
     profWrap.replaceChildren();
     profiles.forEach((prof) => {
       const card = document.createElement('article');
       card.className = 'panel compare-profile-card';
+      const asset = getAgentAsset(prof.agent);
       const sent = prof.sentiment;
       const posPct = sent?.total_mentions ? sent.positive_percentage : 0;
       const neuPct = sent?.total_mentions ? sent.neutral_percentage : 0;
       const negPct = sent?.total_mentions ? sent.negative_percentage : 0;
       card.innerHTML = `
+        <img class="compare-card-art" src="${asset.portrait || asset.fallback_portrait}" alt="" aria-hidden="true" onerror="this.onerror=null;this.src='${asset.fallback_portrait}'" />
         <div class="compare-profile-head">
-          <div>
-            <p class="kicker">${prof.role || 'AGENT'}</p>
-            <h3><a class="text-link" href="/agents/${encodeURIComponent(prof.agent)}">${prof.agent} ↗</a></h3>
+          <div class="compare-head-id">
+            <img class="agent-avatar-md" src="${asset.icon || asset.fallback_icon}" alt="${prof.agent}" onerror="this.onerror=null;this.src='${asset.fallback_icon}'" />
+            <div>
+              <p class="kicker agent-role-line">
+                <img class="role-icon-mini" src="${asset.role_icon || asset.fallback_role_icon}" alt="" onerror="this.onerror=null;this.src='${asset.fallback_role_icon}'" />
+                <span>${prof.role || 'AGENT'}</span>
+              </p>
+              <h3><a class="text-link" href="/agents/${encodeURIComponent(prof.agent)}">${prof.agent} ↗</a></h3>
+            </div>
           </div>
           <span class="role-pill">${formatNumber(prof.appearances)} picks</span>
         </div>
@@ -1260,7 +1565,7 @@ async function initializeCompare() {
 
     // 6. Detailed Per-Map Breakdown Table
     renderTable(document.getElementById('compare-table'), records, [
-      { value: (item) => item.agent_name, link: (item) => `/agents/${encodeURIComponent(item.agent_name)}` },
+      { value: (item) => item.agent_name, link: (item) => `/agents/${encodeURIComponent(item.agent_name)}`, agentAvatar: true },
       { value: (item) => item.role || 'N/A', rolePill: true },
       { value: (item) => item.map, link: (item) => `/maps/${encodeURIComponent(item.map)}` },
       { value: (item) => formatNumber(item.appearances) },
@@ -1310,56 +1615,105 @@ async function initializeCompare() {
 }
 
 async function initializeSentiment() {
-  const [distribution, scoreData, agentSentiment] = await Promise.all([
-    getJson('/api/sentiment/distribution'),
-    getJson('/api/sentiment/scores'),
-    getJson('/api/sentiment/by-agent'),
-  ]);
-  renderSentimentChart('sentiment-chart', 'sentiment-counts', distribution);
-  document.getElementById('sentiment-source-note').textContent = distribution.label_source;
-  renderChart('score-distribution-chart', {
-    type: 'bar',
-    data: {
-      labels: scoreData.score_distribution.map((item) => String(item.score)),
-      datasets: [{ label: 'Reviews', data: scoreData.score_distribution.map((item) => item.count), backgroundColor: '#75aaff', borderRadius: 2 }],
-    },
-    options: barOptions(),
-  });
-  const sentimentOrder = ['Negative', 'Neutral', 'Positive'];
-  renderChart('score-sentiment-chart', {
-    type: 'bar',
-    data: {
-      labels: sentimentOrder,
-      datasets: [{ label: 'Reviews', data: sentimentOrder.map((label) => scoreData.sentiment_distribution[label].count), backgroundColor: ['#ff4655', '#eab36b', '#d4d0d1'], borderRadius: 2 }],
-    },
-    options: barOptions(),
-  });
-  renderTable(document.getElementById('score-sentiment-table'), sentimentOrder.map((label) => ({
-    label,
-    range: scoreData.label_mapping[label.toLowerCase()],
-    ...scoreData.sentiment_distribution[label],
-  })), [
-    { value: (item) => item.label },
-    { value: (item) => item.range },
-    { value: (item) => formatNumber(item.count) },
-    { value: (item) => formatPercent(item.percentage / 100) },
-    { value: (item) => item.average_score === null ? 'N/A' : formatMetric(item.average_score, 2) },
-  ]);
-  renderTable(document.getElementById('sentiment-agent-table'), agentSentiment.agents, [
-    { value: (item) => item.agent, link: (item) => `/agents/${encodeURIComponent(item.agent)}` },
-    { value: (item) => item.role || 'N/A', rolePill: true },
-    { value: (item) => formatNumber(item.positive_reviews) },
-    { value: (item) => formatPercent(item.positive_percentage / 100) },
-    { value: (item) => formatNumber(item.neutral_reviews) },
-    { value: (item) => formatPercent(item.neutral_percentage / 100) },
-    { value: (item) => formatNumber(item.negative_reviews) },
-    { value: (item) => formatPercent(item.negative_percentage / 100) },
-    { value: (item) => formatNumber(item.total_mentions) },
-  ], 'No agent names detected in the review dataset.');
-  document.getElementById('agent-sentiment-note').textContent = agentSentiment.method;
+  let cachedAgents = [];
+  const agentSearchInput = document.getElementById('sentiment-agent-search');
+
+  const renderAgentMentionTable = () => {
+    const q = (agentSearchInput?.value || '').trim().toLowerCase();
+    const filtered = q
+      ? cachedAgents.filter((item) => item.agent.toLowerCase().includes(q) || String(item.role || '').toLowerCase().includes(q))
+      : cachedAgents;
+    renderTable(document.getElementById('sentiment-agent-table'), filtered, [
+      { value: (item) => item.agent, link: (item) => `/agents/${encodeURIComponent(item.agent)}`, agentAvatar: true },
+      { value: (item) => item.role || 'N/A', rolePill: true },
+      { value: (item) => item.average_score !== null && item.average_score !== undefined ? `${formatMetric(item.average_score, 1)} / 10` : 'N/A' },
+      { value: (item) => formatNumber(item.positive_reviews) },
+      { value: (item) => formatPercent(item.positive_percentage / 100) },
+      { value: (item) => formatNumber(item.neutral_reviews) },
+      { value: (item) => formatPercent(item.neutral_percentage / 100) },
+      { value: (item) => formatNumber(item.negative_reviews) },
+      { value: (item) => formatPercent(item.negative_percentage / 100) },
+      { value: (item) => formatNumber(item.total_mentions) },
+    ], 'No matching agents found.');
+  };
+
+  const refreshSentimentTelemetry = async (pulse = false) => {
+    const [distribution, scoreData, agentSentiment] = await Promise.all([
+      getJson('/api/sentiment/distribution'),
+      getJson('/api/sentiment/scores'),
+      getJson('/api/sentiment/by-agent'),
+    ]);
+
+    const totalEl = document.getElementById('sent-kpi-total');
+    const avgEl = document.getElementById('sent-kpi-avg');
+    const posEl = document.getElementById('sent-kpi-pos');
+    const posCntEl = document.getElementById('sent-kpi-pos-count');
+    const liveEl = document.getElementById('sent-kpi-live');
+    const rangeEl = document.getElementById('sent-kpi-range');
+    if (totalEl) totalEl.textContent = formatNumber(distribution.total_reviews);
+    if (avgEl) avgEl.textContent = `${formatMetric(scoreData.average_score ?? distribution.average_score, 2)} / 10`;
+    if (posEl) posEl.textContent = `${formatMetric(distribution.percentages.Positive, 1)}%`;
+    if (posCntEl) posCntEl.textContent = `${formatNumber(distribution.counts.Positive)} positive reviews`;
+    if (liveEl) {
+      const liveCnt = distribution.live_analyzed_count || 0;
+      liveEl.textContent = liveCnt > 0 ? `+${formatNumber(liveCnt)} live analyzed synced` : 'June 2020 – Nov 2026 corpus';
+    }
+    if (rangeEl) rangeEl.textContent = distribution.date_range || '2020-06 to 2026-11';
+    if (pulse && totalEl) {
+      const card = totalEl.closest('.metric');
+      if (card) {
+        card.classList.remove('live-pulse');
+        void card.offsetWidth;
+        card.classList.add('live-pulse');
+      }
+    }
+
+    renderSentimentChart('sentiment-chart', 'sentiment-counts', distribution);
+    document.getElementById('sentiment-source-note').textContent = distribution.label_source;
+    renderChart('score-distribution-chart', {
+      type: 'bar',
+      data: {
+        labels: scoreData.score_distribution.map((item) => String(item.score)),
+        datasets: [{ label: 'Reviews', data: scoreData.score_distribution.map((item) => item.count), backgroundColor: '#64b5f6', borderRadius: 2 }],
+      },
+      options: barOptions(),
+    });
+    const sentimentOrder = ['Negative', 'Neutral', 'Positive'];
+    renderChart('score-sentiment-chart', {
+      type: 'bar',
+      data: {
+        labels: sentimentOrder,
+        datasets: [{ label: 'Reviews', data: sentimentOrder.map((label) => scoreData.sentiment_distribution[label].count), backgroundColor: ['#ff4655', '#eab36b', '#4cd4a9'], borderRadius: 2 }],
+      },
+      options: barOptions(),
+    });
+    renderTable(document.getElementById('score-sentiment-table'), sentimentOrder.map((label) => ({
+      label,
+      range: scoreData.label_mapping[label.toLowerCase()],
+      ...scoreData.sentiment_distribution[label],
+    })), [
+      { value: (item) => item.label },
+      { value: (item) => item.range },
+      { value: (item) => formatNumber(item.count) },
+      { value: (item) => formatPercent(item.percentage / 100) },
+      { value: (item) => item.average_score === null ? 'N/A' : formatMetric(item.average_score, 2) },
+    ]);
+    cachedAgents = (agentSentiment.agents || []).slice().sort((a, b) => (b.total_mentions || 0) - (a.total_mentions || 0));
+    renderAgentMentionTable();
+    document.getElementById('agent-sentiment-note').textContent = agentSentiment.method;
+  };
+
+  if (agentSearchInput) {
+    agentSearchInput.addEventListener('input', renderAgentMentionTable);
+  }
+  await refreshSentimentTelemetry(false);
+
   const form = document.getElementById('dashboard-predict-form');
   const reviewInput = document.getElementById('dashboard-review');
   const output = document.getElementById('prediction-results');
+  const submitBtn = document.getElementById('analyze-submit-btn');
+  const recordCheckbox = document.getElementById('record-live-checkbox');
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const review = reviewInput.value.trim();
@@ -1367,21 +1721,35 @@ async function initializeSentiment() {
       notify('Enter a review before analyzing.');
       return;
     }
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'ANALYZING...';
+    }
     try {
+      const recordLive = recordCheckbox ? recordCheckbox.checked : true;
       const response = await fetch('/api/sentiment/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ review }),
+        body: JSON.stringify({ review, record_live: recordLive }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Prediction failed.');
-      await renderPredictionAnalysis(output, result);
+      await renderPredictionAnalysis(output, result, review);
       output.hidden = false;
       document.getElementById('page-notice').hidden = true;
+      if (result.recorded_live) {
+        await refreshSentimentTelemetry(true);
+      }
     } catch (error) {
       notify(error.message);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'ANALYZE';
+      }
     }
   });
+
   document.getElementById('clear-review').addEventListener('click', () => {
     reviewInput.value = '';
     output.replaceChildren();
@@ -1389,10 +1757,10 @@ async function initializeSentiment() {
   });
 
   const samplePresets = {
-    mixed: 'Jett is amazing and super fun on Ascent, and gunplay feels clean, but matchmaking is terrible and Raze feels broken after the patch.',
-    negative: 'Vanguard anti-cheat crashes my system, the servers are laggy with awful hitreg, and matchmaking is full of toxic AFK players.',
-    positive: 'Incredible tactical FPS! Runs at smooth 144 FPS even on older hardware, crisp gunplay, and Sova is really useful for team strategy.',
-    neutral: 'Solid free-to-play tactical shooter with fun abilities and good mechanics, though the skin prices are too high and I haven\'t seen enough map variety yet.',
+    mixed: 'Veto is amazing and super fun on Corrode, and the gunplay feels clean, but matchmaking is terrible and Hush feels broken after the latest patch.',
+    negative: 'Vanguard anti-cheat crashes my system on Corrode, servers are laggy with awful hitreg, and playing against Hush in toxic AFK lobbies is frustrating.',
+    positive: 'Incredible tactical FPS! Miks feels awesome and balanced on Summit, runs at smooth 240 FPS, crisp gunplay, and Gekko is really useful for team strategy.',
+    neutral: 'Solid free-to-play tactical shooter with Vyse and Clove on Abyss, though skin prices are too high and solo queue matchmaking still fluctuates.',
   };
   document.querySelectorAll('.preset-chip').forEach((button) => {
     button.addEventListener('click', () => {
@@ -1410,35 +1778,141 @@ function initializeBatchAnalyzer() {
   const batchForm = document.getElementById('batch-predict-form');
   if (!batchForm) return;
   const fileInput = document.getElementById('batch-file');
+  const fileStatus = document.getElementById('batch-file-status');
   const textarea = document.getElementById('batch-textarea');
   const includeBert = document.getElementById('batch-include-distilbert');
   const runBtn = document.getElementById('run-batch-btn');
   const exportBtn = document.getElementById('batch-export-csv');
+  const clearBtn = document.getElementById('batch-clear-btn');
   const resultsWrap = document.getElementById('batch-results');
+  const searchInput = document.getElementById('batch-search-input');
+  const filterTabs = document.getElementById('batch-sentiment-filter');
+  const prevBtn = document.getElementById('batch-prev-page');
+  const nextBtn = document.getElementById('batch-next-page');
+  const pageInfo = document.getElementById('batch-page-info');
+
   let lastBatchReport = null;
+  let batchSentimentFilter = 'All';
+  let batchSearchQuery = '';
+  let batchPage = 1;
+  const PAGE_SIZE = 25;
+
+  const updateFileStatus = () => {
+    if (!fileStatus) return;
+    if (fileInput.files && fileInput.files.length > 0) {
+      const f = fileInput.files[0];
+      fileStatus.textContent = `Selected file: ${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+    } else {
+      fileStatus.textContent = 'No file selected (will analyze pasted lines)';
+    }
+  };
+  fileInput.addEventListener('change', updateFileStatus);
+
+  const renderBatchTablePage = () => {
+    if (!lastBatchReport) return;
+    const q = batchSearchQuery.trim().toLowerCase();
+    const filtered = (lastBatchReport.items || []).filter((item) => {
+      const sentOk = batchSentimentFilter === 'All' || item.sentiment === batchSentimentFilter;
+      const hay = `${item.review} ${item.sentiment} ${(item.agents || []).join(' ')} ${(item.maps || []).join(' ')} ${(item.topics || []).join(' ')}`.toLowerCase();
+      return sentOk && (!q || hay.includes(q));
+    });
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (batchPage > totalPages) batchPage = totalPages;
+    const start = (batchPage - 1) * PAGE_SIZE;
+    const slice = filtered.slice(start, start + PAGE_SIZE);
+
+    const tbody = document.getElementById('batch-table-body');
+    tbody.replaceChildren();
+    if (!slice.length) {
+      showEmpty(tbody, 'No batch rows match your filter.');
+    } else {
+      slice.forEach((item) => {
+        const tr = document.createElement('tr');
+        const tdIdx = document.createElement('td');
+        tdIdx.textContent = String(item.index);
+        const tdRev = document.createElement('td');
+        tdRev.style.whiteSpace = 'normal';
+        tdRev.style.maxWidth = '420px';
+        tdRev.textContent = item.review;
+        const tdSent = document.createElement('td');
+        const pill = document.createElement('span');
+        pill.className = `sentiment-pill ${String(item.sentiment || 'neutral').toLowerCase()}`;
+        pill.textContent = item.sentiment;
+        tdSent.append(pill);
+        const tdDerived = document.createElement('td');
+        tdDerived.textContent = `${formatMetric(item.derived_score, 1)} / 10`;
+        const tdConf = document.createElement('td');
+        tdConf.textContent = `${(Number(item.confidence ?? item.score ?? 0) * 100).toFixed(1)}%`;
+        const tdAspects = document.createElement('td');
+        tdAspects.style.whiteSpace = 'normal';
+        const tags = [...(item.agents || []), ...(item.maps || []), ...(item.topics || [])];
+        tdAspects.textContent = tags.length ? tags.join(' · ') : '—';
+        tr.append(tdIdx, tdRev, tdSent, tdDerived, tdConf, tdAspects);
+        tbody.append(tr);
+      });
+    }
+    if (pageInfo) pageInfo.textContent = `Page ${batchPage} of ${totalPages} (${formatNumber(filtered.length)} rows)`;
+    if (prevBtn) prevBtn.disabled = batchPage <= 1;
+    if (nextBtn) nextBtn.disabled = batchPage >= totalPages;
+  };
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      batchSearchQuery = searchInput.value;
+      batchPage = 1;
+      renderBatchTablePage();
+    });
+  }
+  if (filterTabs) {
+    filterTabs.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('button[data-sent]');
+      if (!btn) return;
+      batchSentimentFilter = btn.dataset.sent;
+      filterTabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      batchPage = 1;
+      renderBatchTablePage();
+    });
+  }
+  if (prevBtn) prevBtn.addEventListener('click', () => { if (batchPage > 1) { batchPage -= 1; renderBatchTablePage(); } });
+  if (nextBtn) nextBtn.addEventListener('click', () => { batchPage += 1; renderBatchTablePage(); });
 
   document.getElementById('batch-load-sample').addEventListener('click', () => {
     fileInput.value = '';
+    updateFileStatus();
     textarea.value = [
-      'Jett is amazing on Ascent and the gunplay feels super crisp and rewarding!',
-      'Vanguard anti-cheat caused crashes and matchmaking is terrible with constant lag.',
-      'Raze feels weak after the latest patch, though Split plays much better now.',
-      'Great tactical shooter that runs smoothly on low-end PCs. Really fun with friends.',
-      'Decent core gameplay and Sova is useful, but skin prices are way too high and maps feel limited.',
-      'Worst matchmaking experience ever, awful hit registration and toxic teammates every game.',
+      'Veto is amazing on Summit and the gunplay feels super crisp and rewarding!',
+      'Vanguard anti-cheat caused crashes on Corrode and matchmaking is terrible with constant lag.',
+      'Hush feels broken in tight chokes, though Abyss rotations play much better after the patch.',
+      'Miks is such a fun and balanced controller on Lotus. Smooth 240 FPS performance!',
+      'Decent core gameplay with Vyse and Clove, but skin prices are too high and solo queue fluctuates.',
+      'Worst matchmaking experience ever on Bind, awful hit registration and toxic teammates every game.',
+      'Waylay entry pace on Split is awesome when paired with Tejo and Gekko in a 5-stack!',
+      'Yoru on Pearl sits in an average spot — solid in coordinated squads, tricky in solo ranked.',
     ].join('\n');
   });
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      textarea.value = '';
+      updateFileStatus();
+      resultsWrap.hidden = true;
+      exportBtn.hidden = true;
+      lastBatchReport = null;
+    });
+  }
 
   exportBtn.addEventListener('click', () => {
     if (!lastBatchReport || !lastBatchReport.items.length) return;
     const escapeCsv = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
-    const header = ['index', 'sentiment', 'score', 'prob_negative', 'prob_neutral', 'prob_positive', 'agents', 'maps', 'topics', 'review'];
+    const header = ['index', 'sentiment', 'derived_score_10', 'confidence', 'prob_negative', 'prob_neutral', 'prob_positive', 'agents', 'maps', 'topics', 'review'];
     const lines = [header.join(',')];
     lastBatchReport.items.forEach((item) => {
       lines.push([
         item.index,
         item.sentiment,
-        item.score,
+        item.derived_score,
+        item.confidence ?? item.score,
         item.probabilities?.Negative ?? '',
         item.probabilities?.Neutral ?? '',
         item.probabilities?.Positive ?? '',
@@ -1462,7 +1936,7 @@ function initializeBatchAnalyzer() {
     const hasFile = fileInput.files && fileInput.files.length > 0;
     const rawLines = textarea.value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
     if (!hasFile && !rawLines.length) {
-      notify('Upload a CSV file or paste at least one review line for batch analysis.');
+      notify('Upload a CSV/TXT file or paste at least one review line for batch analysis.');
       return;
     }
     runBtn.disabled = true;
@@ -1484,10 +1958,16 @@ function initializeBatchAnalyzer() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Batch analysis failed.');
       lastBatchReport = data;
+      batchSentimentFilter = 'All';
+      batchSearchQuery = '';
+      batchPage = 1;
+      if (searchInput) searchInput.value = '';
+      if (filterTabs) filterTabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.sent === 'All'));
 
       const metricsEl = document.getElementById('batch-metrics');
       metricsEl.innerHTML = [
-        `<article class="metric"><span>PROCESSED</span><strong>${formatNumber(data.processed_count)}</strong><small>${data.models_used.join(' + ')}</small></article>`,
+        `<article class="metric"><span>ANALYZED</span><strong>${formatNumber(data.processed_count)}</strong><small>${data.models_used.join(' + ')}</small></article>`,
+        `<article class="metric"><span>AVG SCORE</span><strong>${formatMetric(data.average_derived_score, 1)} / 10</strong><small>Derived 0–10 mean</small></article>`,
         `<article class="metric"><span>POSITIVE</span><strong>${data.sentiment_percentages.Positive}%</strong><small>${formatNumber(data.sentiment_counts.Positive)} reviews</small></article>`,
         `<article class="metric"><span>NEUTRAL</span><strong>${data.sentiment_percentages.Neutral}%</strong><small>${formatNumber(data.sentiment_counts.Neutral)} reviews</small></article>`,
         `<article class="metric"><span>NEGATIVE</span><strong>${data.sentiment_percentages.Negative}%</strong><small>${formatNumber(data.sentiment_counts.Negative)} reviews</small></article>`,
@@ -1506,12 +1986,47 @@ function initializeBatchAnalyzer() {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { color: '#c4cfcd' } } },
+          plugins: { legend: { position: 'bottom', labels: { color: '#ece8e1' } } },
         },
+      });
+
+      const hist = data.score_histogram || [];
+      renderChart('batch-score-hist-chart', {
+        type: 'bar',
+        data: {
+          labels: hist.map((h) => String(h.score)),
+          datasets: [{
+            label: 'Batch Reviews by Derived Score (0–10)',
+            data: hist.map((h) => h.count),
+            backgroundColor: hist.map((h) => h.score <= 4 ? '#ff4655' : (h.score <= 6 ? '#eab36b' : '#4cd4a9')),
+            borderRadius: 2,
+          }],
+        },
+        options: barOptions(),
       });
 
       const aspectsEl = document.getElementById('batch-aspects');
       aspectsEl.replaceChildren();
+      const agentBreakdown = data.agent_sentiment_breakdown || [];
+      if (agentBreakdown.length) {
+        const card = document.createElement('article');
+        card.className = 'analysis-card';
+        const h = document.createElement('strong');
+        h.textContent = 'DETECTED AGENTS IN BATCH';
+        const chipRow = document.createElement('div');
+        chipRow.className = 'composition-agents';
+        agentBreakdown.forEach((a) => {
+          const chip = document.createElement('span');
+          chip.className = 'agent-cell-inline';
+          chip.append(
+            createAgentAvatarElement(a.agent, 'agent-avatar-xs'),
+            document.createTextNode(`${a.agent} (${a.mentions} · avg ${formatMetric(a.avg_score, 1)}/10)`),
+          );
+          chipRow.append(chip);
+        });
+        card.append(h, chipRow);
+        aspectsEl.append(card);
+      }
       const buildSummaryCard = (heading, entries, formatter) => {
         const card = document.createElement('article');
         card.className = 'analysis-card';
@@ -1523,19 +2038,11 @@ function initializeBatchAnalyzer() {
         return card;
       };
       aspectsEl.append(
-        buildSummaryCard('TOP MENTIONED AGENTS', data.top_agents, (a) => `${a.agent} (${a.mentions})`),
         buildSummaryCard('TOP MENTIONED MAPS', data.top_maps, (m) => `${m.map} (${m.mentions})`),
         buildSummaryCard('TOPIC SIGNALS', data.top_topics, (t) => `${t.topic}: ${t.mentions} (${t.negative_mentions} neg)`),
       );
 
-      renderTable(document.getElementById('batch-table-body'), data.items.slice(0, 50), [
-        { value: (item) => String(item.index) },
-        { value: (item) => item.review },
-        { value: (item) => item.sentiment },
-        { value: (item) => `${(item.score * 100).toFixed(1)}%` },
-        { value: (item) => [...item.agents, ...item.maps, ...item.topics].join(', ') || '—' },
-      ]);
-
+      renderBatchTablePage();
       exportBtn.hidden = false;
       resultsWrap.hidden = false;
       document.getElementById('page-notice').hidden = true;
@@ -1546,6 +2053,31 @@ function initializeBatchAnalyzer() {
       runBtn.textContent = 'RUN BATCH ANALYSIS';
     }
   });
+}
+
+function escapeHtmlSafe(str) {
+  return String(str || '').replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[ch]);
+}
+
+function buildHighlightedReviewHtml(rawText, explanation) {
+  let html = escapeHtmlSafe(rawText || '');
+  if (!explanation || !explanation.available) return html;
+  const terms = [
+    ...(explanation.positive_terms || []).map((t) => ({ term: t.term, cls: 'xai-hl-pos' })),
+    ...(explanation.negative_terms || []).map((t) => ({ term: t.term, cls: 'xai-hl-neg' })),
+  ].sort((a, b) => b.term.length - a.term.length);
+  const used = new Set();
+  for (const { term, cls } of terms) {
+    const cleanTerm = String(term || '').trim();
+    if (!cleanTerm || cleanTerm.length < 3 || used.has(cleanTerm.toLowerCase())) continue;
+    used.add(cleanTerm.toLowerCase());
+    const escaped = cleanTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b(${escaped})\\b`, 'gi');
+    html = html.replace(regex, `<mark class="${cls}">$1</mark>`);
+  }
+  return html;
 }
 
 function createAnalysisSection(title) {
@@ -1572,33 +2104,76 @@ function normalizeLookup(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-async function renderPredictionAnalysis(output, result) {
+async function renderPredictionAnalysis(output, result, rawReviewText = '') {
   output.replaceChildren();
   output.classList.add('has-analysis');
 
-  const overall = document.createElement('article');
-  overall.className = 'prediction-overall';
-  const overallLabel = document.createElement('strong');
-  overallLabel.textContent = `Overall sentiment · ${result.overall.label}`;
-  const overallNote = document.createElement('small');
-  const agreementText = `${result.ensemble.agreement}/${result.ensemble.model_count} available models agree`;
-  const scoreText = result.ensemble.score === null || result.ensemble.score === undefined
-    ? ''
-    : ` · ensemble score ${(result.ensemble.score * 100).toFixed(1)}%`;
-  const strategyText = result.ensemble.strategy === 'validation_macro_f1'
-    ? ' · validation-F1 weighted'
-    : '';
-  overallNote.textContent = `${result.selected_model} · ${agreementText}${scoreText}${strategyText}.`;
-  overall.append(overallLabel, overallNote);
-  output.append(overall);
+  const overallLabelVal = result.overall?.label || result.ensemble?.label || 'Neutral';
+  const derivedScore = result.overall?.derived_score ?? result.ensemble?.derived_score ?? 5.5;
+  const confPct = result.ensemble?.confidence !== null && result.ensemble?.confidence !== undefined
+    ? `${(Number(result.ensemble.confidence) * 100).toFixed(1)}%`
+    : (result.ensemble?.score ? `${(Number(result.ensemble.score) * 100).toFixed(1)}%` : 'N/A');
 
-  const models = createAnalysisSection('MODEL PREDICTIONS');
+  const hero = document.createElement('article');
+  hero.className = `prediction-hero-verdict ${overallLabelVal.toLowerCase()}`;
+  hero.innerHTML = `
+    <div class="verdict-score-box">
+      <span class="verdict-score-num">${formatMetric(derivedScore, 1)}</span>
+      <span class="verdict-score-den">/ 10.0 DERIVED SCORE</span>
+    </div>
+    <div class="verdict-meta">
+      <div class="verdict-badge-row">
+        <span class="sentiment-pill ${overallLabelVal.toLowerCase()}">${overallLabelVal.toUpperCase()}</span>
+        <span class="role-pill">CONFIDENCE ${confPct}</span>
+        <span class="role-pill">${result.ensemble.agreement}/${result.ensemble.model_count} MODELS AGREE</span>
+        ${result.recorded_live ? '<span class="role-pill" style="border-color:#4cd4a9;color:#4cd4a9;">✓ SYNCED TO LIVE 100K+ TELEMETRY</span>' : ''}
+      </div>
+      <small style="color:#9eaab7;">${escapeHtmlSafe(result.selected_model)} · ${result.ensemble.strategy === 'validation_macro_f1' ? 'Validation Macro-F1 weighted probability ensemble' : 'Probability ensemble'}</small>
+    </div>
+  `;
+  output.append(hero);
+
+  // Community Comparison Card (vs 100,000+ community averages)
+  const comparisons = result.community_comparison || [];
+  if (comparisons.length) {
+    const compSec = createAnalysisSection('COMMUNITY COMPARISON · VS 100,000+ CORPUS');
+    const compGrid = document.createElement('div');
+    compGrid.className = 'community-compare-grid';
+    comparisons.forEach((c) => {
+      const card = document.createElement('article');
+      card.className = 'community-compare-card';
+      const head = document.createElement('div');
+      head.className = 'verdict-badge-row';
+      if (c.entity_type === 'agent') {
+        head.append(createAgentAvatarElement(c.entity, 'agent-avatar-xs'));
+      }
+      const title = document.createElement('strong');
+      title.textContent = c.entity;
+      const deltaClass = c.delta > 0.3 ? 'above' : (c.delta < -0.3 ? 'below' : 'even');
+      const deltaSign = c.delta >= 0 ? '+' : '';
+      const deltaPill = document.createElement('span');
+      deltaPill.className = `compare-delta ${deltaClass}`;
+      deltaPill.textContent = `${deltaSign}${formatMetric(c.delta, 1)} vs avg`;
+      head.append(title, deltaPill);
+
+      const line = document.createElement('p');
+      line.className = 'panel-note';
+      line.style.margin = '0';
+      line.textContent = `Your review: ${formatMetric(c.review_score, 1)}/10 · Community avg: ${formatMetric(c.community_avg_score, 1)}/10 (${formatMetric(c.positive_percentage, 1)}% pos across ${formatNumber(c.total_mentions)} reviews)`;
+      card.append(head, line);
+      compGrid.append(card);
+    });
+    compSec.append(compGrid);
+    output.append(compSec);
+  }
+
+  const models = createAnalysisSection('4-MODEL ENSEMBLE BREAKDOWN');
   const modelGrid = document.createElement('div');
   modelGrid.className = 'analysis-grid';
   const predictionEntries = Object.entries({
-    SVM: result.svm,
+    LinearSVC: result.svm,
     'Naive Bayes': result.naive_bayes,
-    LSTM: result.lstm,
+    BiLSTM: result.lstm,
     DistilBERT: result.distilbert,
   });
   if (result.ensemble.model_count > 1) {
@@ -1629,12 +2204,19 @@ async function renderPredictionAnalysis(output, result) {
     label.textContent = name;
     const sentiment = document.createElement('strong');
     sentiment.textContent = prediction.label;
+    if (prediction.derived_score !== null && prediction.derived_score !== undefined) {
+      const sb = document.createElement('em');
+      sb.className = 'model-score-badge';
+      sb.style.fontStyle = 'normal';
+      sb.textContent = `${formatMetric(prediction.derived_score, 1)} / 10`;
+      sentiment.append(sb);
+    }
     const detail = document.createElement('small');
     detail.textContent = prediction === result.ensemble
       ? `${prediction.agreement}/${prediction.model_count} model votes`
       : prediction.confidence === null || prediction.confidence === undefined
         ? 'Model score unavailable'
-        : `Top score: ${(prediction.confidence * 100).toFixed(1)}%`;
+        : `Confidence: ${(prediction.confidence * 100).toFixed(1)}%`;
     card.append(label, sentiment, detail);
     const bars = renderProbBars(prediction.probabilities);
     if (bars) card.append(bars);
@@ -1644,7 +2226,13 @@ async function renderPredictionAnalysis(output, result) {
   output.append(models);
 
   if (result.explanation && result.explanation.available) {
-    const xai = createAnalysisSection('EXPLAINABLE AI · KEY INFLUENTIAL TERMS');
+    const xai = createAnalysisSection('EXPLAINABLE AI · INLINE TOKEN HIGHLIGHTS');
+    if (rawReviewText) {
+      const hlBox = document.createElement('div');
+      hlBox.className = 'xai-highlighted-review';
+      hlBox.innerHTML = buildHighlightedReviewHtml(rawReviewText, result.explanation);
+      xai.append(hlBox);
+    }
     const xaiNote = document.createElement('p');
     xaiNote.className = 'panel-note';
     xaiNote.textContent = result.explanation.method;
@@ -1739,7 +2327,8 @@ async function renderPredictionAnalysis(output, result) {
     const card = document.createElement('article');
     card.className = 'analysis-card';
     const title = document.createElement('strong');
-    title.textContent = `${item.agent} · ${item.sentiment}`;
+    title.className = 'agent-cell-inline';
+    title.append(createAgentAvatarElement(item.agent, 'agent-avatar-xs'), document.createTextNode(`${item.agent} · ${item.sentiment}`));
     const role = item.historical_performance?.role || 'Role unavailable';
     const details = document.createElement('p');
     details.textContent = `${role}${item.evidence.length ? ` · Evidence: ${item.evidence.join(', ')}` : ' · No polarity words found near the mention.'}`;
@@ -1929,7 +2518,7 @@ async function initializeModels() {
       const count = document.createElement('strong');
       count.textContent = formatNumber(value);
       const label = document.createElement('small');
-      label.textContent = `${labels[rowIndex]} â†’ ${labels[columnIndex]}`;
+      label.textContent = `${labels[rowIndex]} → ${labels[columnIndex]}`;
       cell.append(count, label);
       grid.append(cell);
     }));
@@ -2109,9 +2698,24 @@ async function initializeReviews() {
 
       const meta = document.createElement('div');
       meta.className = 'review-author-meta';
+      if (rev.author_avatar) {
+        const av = document.createElement('img');
+        av.className = 'user-avatar-mini';
+        av.src = rev.author_avatar;
+        av.alt = rev.username;
+        av.referrerPolicy = 'no-referrer';
+        meta.append(av);
+      }
       const authorEl = document.createElement('strong');
       authorEl.textContent = `@${rev.username}`;
       meta.append(authorEl);
+      if (rev.author_verified) {
+        const ver = document.createElement('span');
+        ver.className = 'verified-tag';
+        ver.title = 'Verified operator';
+        ver.textContent = '✓';
+        meta.append(ver);
+      }
       if (rev.author_role === 'admin') {
         const badge = document.createElement('span');
         badge.className = 'admin-tag';
@@ -2128,7 +2732,10 @@ async function initializeReviews() {
         const targetLink = document.createElement('a');
         targetLink.className = 'target-badge agent';
         targetLink.href = `/agents/${encodeURIComponent(rev.agent_name)}`;
-        targetLink.textContent = `AGENT · ${rev.agent_name} ↗`;
+        targetLink.append(
+          createAgentAvatarElement(rev.agent_name, ''),
+          document.createTextNode(`AGENT · ${rev.agent_name} ↗`),
+        );
         badges.append(targetLink);
       } else {
         const targetSpan = document.createElement('span');
@@ -2241,7 +2848,24 @@ async function initializeReviews() {
     const starLabel = document.getElementById('review-star-label');
     const commentInput = document.getElementById('review-comment-input');
     const submitBtn = document.getElementById('submit-review-btn');
+    const previewAvatar = document.getElementById('review-agent-preview-avatar');
     setOptions(agentSelect, agentNames);
+
+    const syncReviewAgentAvatar = () => {
+      if (!previewAvatar || !agentSelect.value) return;
+      const asset = getAgentAsset(agentSelect.value);
+      previewAvatar.hidden = false;
+      previewAvatar.dataset.fallbackApplied = '';
+      previewAvatar.alt = agentSelect.value;
+      previewAvatar.src = asset.icon || asset.fallback_icon;
+      previewAvatar.onerror = () => {
+        if (previewAvatar.dataset.fallbackApplied) return;
+        previewAvatar.dataset.fallbackApplied = '1';
+        previewAvatar.src = asset.fallback_icon;
+      };
+    };
+    agentSelect.addEventListener('change', syncReviewAgentAvatar);
+    syncReviewAgentAvatar();
 
     let targetType = 'website';
     let selectedRating = 5;
@@ -2332,14 +2956,27 @@ async function initializeReviews() {
 
 async function initializePage() {
   try {
+    await loadValorantAssets();
     if (page === 'dashboard') await initializeDashboard();
     if (page === 'maps') await initializeMaps();
     if (page === 'agents') await initializeAgents();
     if (page === 'recommend') await initializeRecommendations();
     if (page === 'compare') await initializeCompare();
-    if (page === 'sentiment') await initializeSentiment();
-    if (page === 'models') await initializeModels();
-    if (page === 'reviews') await initializeReviews();
+    if (page === 'sentiment') {
+      setMapBackdrop('Ascent');
+      await initializeSentiment();
+    }
+    if (page === 'models') {
+      setMapBackdrop('Abyss');
+      await initializeModels();
+    }
+    if (page === 'reviews') {
+      setMapBackdrop('Corrode');
+      await initializeReviews();
+    }
+    if (page === 'about') {
+      setMapBackdrop('Summit');
+    }
   } catch (error) {
     notify(error.message || 'Unable to load this view.');
     console.error(error);

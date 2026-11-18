@@ -1,7 +1,7 @@
 {
   "model": "Logistic Regression",
   "task": "Predict team 1 map win from map, patch, and pre-match agent/role lineups",
-  "source": "Valorant Pro Matches Statistics (2021-2026 expanded 30-agent, 12-map snapshot)",
+  "source": "Valorant Pro Matches Statistics (2021-2026 expanded 30-agent, 13-map snapshot)",
   "features": [
     "map",
     "patch",
@@ -14,92 +14,92 @@
     "T-side and CT-side player metrics"
   ],
   "split": "GroupShuffleSplit by match date and unordered team pair; mirrored training rows only",
-  "map_outcomes": 30994,
-  "series_groups": 18030,
-  "train_map_outcomes": 24742,
-  "test_map_outcomes": 6252,
-  "training_time_seconds": 0.2215260999983002,
-  "inference_latency_ms_per_map": 0.002164059501203949,
-  "accuracy": 0.5257517594369802,
-  "precision_macro": 0.5177925311479556,
-  "recall_macro": 0.5178029405326956,
-  "f1_macro": 0.5177970743206219,
+  "map_outcomes": 31294,
+  "series_groups": 18312,
+  "train_map_outcomes": 24975,
+  "test_map_outcomes": 6319,
+  "training_time_seconds": 0.16655920000266633,
+  "inference_latency_ms_per_map": 0.0018504510207908928,
+  "accuracy": 0.5190694730178825,
+  "precision_macro": 0.5218928236953909,
+  "recall_macro": 0.5220422923227249,
+  "f1_macro": 0.5188399897701663,
   "classification_report": {
     "Team 2 wins": {
-      "precision": 0.45527859237536655,
-      "recall": 0.4564498346196251,
-      "f1-score": 0.4558634611855386,
-      "support": 2721.0
+      "precision": 0.47106446776611693,
+      "recall": 0.5520028109627547,
+      "f1-score": 0.5083319851156771,
+      "support": 2846.0
     },
     "Team 1 wins": {
-      "precision": 0.5803064699205448,
-      "recall": 0.5791560464457661,
-      "f1-score": 0.5797306874557052,
-      "support": 3531.0
+      "precision": 0.5727211796246648,
+      "recall": 0.49208177368269507,
+      "f1-score": 0.5293479944246554,
+      "support": 3473.0
     },
-    "accuracy": 0.5257517594369802,
+    "accuracy": 0.5190694730178825,
     "macro avg": {
-      "precision": 0.5177925311479556,
-      "recall": 0.5178029405326956,
-      "f1-score": 0.5177970743206219,
-      "support": 6252.0
+      "precision": 0.5218928236953909,
+      "recall": 0.5220422923227249,
+      "f1-score": 0.5188399897701663,
+      "support": 6319.0
     },
     "weighted avg": {
-      "precision": 0.5258917458641741,
-      "recall": 0.5257517594369802,
-      "f1-score": 0.5258211028937853,
-      "support": 6252.0
+      "precision": 0.5269362449911108,
+      "recall": 0.5190694730178825,
+      "f1-score": 0.5198826419173992,
+      "support": 6319.0
     }
   },
   "confusion_matrix": [
     [
-      1242,
-      1479
+      1571,
+      1275
     ],
     [
-      1486,
-      2045
+      1764,
+      1709
     ]
   ],
   "baseline": {
     "model": "Most-frequent class",
-    "accuracy": 0.5647792706333973,
-    "f1_macro": 0.3609322293774916,
+    "accuracy": 0.5496122804241177,
+    "f1_macro": 0.35467728758169936,
     "classification_report": {
       "Team 2 wins": {
         "precision": 0.0,
         "recall": 0.0,
         "f1-score": 0.0,
-        "support": 2721.0
+        "support": 2846.0
       },
       "Team 1 wins": {
-        "precision": 0.5647792706333973,
+        "precision": 0.5496122804241177,
         "recall": 1.0,
-        "f1-score": 0.7218644587549832,
-        "support": 3531.0
+        "f1-score": 0.7093545751633987,
+        "support": 3473.0
       },
-      "accuracy": 0.5647792706333973,
+      "accuracy": 0.5496122804241177,
       "macro avg": {
-        "precision": 0.28238963531669864,
+        "precision": 0.27480614021205885,
         "recall": 0.5,
-        "f1-score": 0.3609322293774916,
-        "support": 6252.0
+        "f1-score": 0.35467728758169936,
+        "support": 6319.0
       },
       "weighted avg": {
-        "precision": 0.31897562453719225,
-        "recall": 0.5647792706333973,
-        "f1-score": 0.4076940825118115,
-        "support": 6252.0
+        "precision": 0.302073658792999,
+        "recall": 0.5496122804241177,
+        "f1-score": 0.3898699856848368,
+        "support": 6319.0
       }
     },
     "confusion_matrix": [
       [
         0,
-        2721
+        2846
       ],
       [
         0,
-        3531
+        3473
       ]
     ]
   },
@@ -107,6 +107,6 @@
     "The source has no explicit match ID, event, region, or starting-side data.",
     "The split groups same-date team pairings to reduce series leakage but cannot guarantee event-level separation.",
     "The target is map winner; no side-specific win prediction is supported.",
-    "The dataset spans April 2021 through November 2026 across all 30 agents and 12 maps."
+    "The dataset spans April 2021 through November 2026 across all 30 agents and 13 maps."
   ]
 }
