@@ -3,6 +3,7 @@ from __future__ import annotations
 import itertools
 import json
 import re
+import threading
 from functools import lru_cache
 from pathlib import Path
 
@@ -12,6 +13,23 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 CLEAN_MATCHES_PATH = BASE_DIR / "data" / "processed" / "matches" / "valorant_pro_matches_clean.parquet"
 AGENT_ROLES_PATH = BASE_DIR / "data" / "agents" / "agent_roles.csv"
 CONFIG_PATH = BASE_DIR / "config" / "analytics.json"
+ANALYTICS_COLUMNS = [
+    "map_group_id",
+    "match-datetime",
+    "map",
+    "player-team",
+    "player-name",
+    "agent",
+    "player_won_map",
+    "acs-t",
+    "acs-ct",
+]
+
+_ANALYTICS_LOCK = threading.Lock()
+_MATCHES_CACHE: pd.DataFrame | None = None
+_AGENT_MAP_STATS_CACHE: pd.DataFrame | None = None
+_COMPOSITION_STATS_CACHE: pd.DataFrame | None = None
+_PAIR_STATS_CACHE: pd.DataFrame | None = None
 
 
 def normalize_name(value: str) -> str:
@@ -23,56 +41,72 @@ def _get_config() -> dict:
     return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
 
 
-@lru_cache(maxsize=1)
 def _load_matches() -> pd.DataFrame:
-    if not CLEAN_MATCHES_PATH.exists():
-        raise FileNotFoundError("Run `python -m src.data_loader` before using match analytics.")
+    global _MATCHES_CACHE
+    if _MATCHES_CACHE is not None:
+        return _MATCHES_CACHE
+    with _ANALYTICS_LOCK:
+        if _MATCHES_CACHE is not None:
+            return _MATCHES_CACHE
+        if not CLEAN_MATCHES_PATH.exists():
+            raise FileNotFoundError("Run `python -m src.data_loader` before using match analytics.")
 
-    matches = pd.read_parquet(CLEAN_MATCHES_PATH)
-    roles = pd.read_csv(AGENT_ROLES_PATH)
-    roles["agent_key"] = roles["agent"].map(normalize_name)
-    role_by_key = roles.set_index("agent_key")["role"].to_dict()
-    name_by_key = roles.set_index("agent_key")["agent"].to_dict()
+        # Read only the 9 columns analytics actually uses to keep memory tiny (<30 MB).
+        matches = pd.read_parquet(CLEAN_MATCHES_PATH, columns=ANALYTICS_COLUMNS)
+        roles = pd.read_csv(AGENT_ROLES_PATH)
+        roles["agent_key"] = roles["agent"].map(normalize_name)
+        role_by_key = roles.set_index("agent_key")["role"].to_dict()
+        name_by_key = roles.set_index("agent_key")["agent"].to_dict()
 
-    matches["agent_key"] = matches["agent"].map(normalize_name)
-    matches["agent_name"] = matches["agent_key"].map(name_by_key).fillna(matches["agent"])
-    matches["role"] = matches["agent_key"].map(role_by_key)
-    return matches
+        agent_keys = matches["agent"].map(normalize_name)
+        matches["agent_name"] = agent_keys.map(name_by_key).fillna(matches["agent"]).astype("category")
+        matches["role"] = agent_keys.map(role_by_key).astype("category")
+        matches["map"] = matches["map"].astype("category")
+        matches["acs-t"] = matches["acs-t"].astype("float32")
+        matches["acs-ct"] = matches["acs-ct"].astype("float32")
+        matches.drop(columns=["agent"], inplace=True)
+        _MATCHES_CACHE = matches
+        return _MATCHES_CACHE
 
 
 def _to_records(frame: pd.DataFrame) -> list[dict]:
     return json.loads(frame.to_json(orient="records"))
 
 
-@lru_cache(maxsize=1)
 def _get_agent_map_stats() -> pd.DataFrame:
+    global _AGENT_MAP_STATS_CACHE
+    if _AGENT_MAP_STATS_CACHE is not None:
+        return _AGENT_MAP_STATS_CACHE
     matches = _load_matches()
-    stats = (
-        matches.groupby(["map", "agent_name", "role"], dropna=False)
-        .agg(
-            appearances=("map_group_id", "size"),
-            resolved_maps=("player_won_map", "count"),
-            wins=("player_won_map", "sum"),
-            attack_acs_median=("acs-t", "median"),
-            attack_acs_samples=("acs-t", "count"),
-            defense_acs_median=("acs-ct", "median"),
-            defense_acs_samples=("acs-ct", "count"),
+    with _ANALYTICS_LOCK:
+        if _AGENT_MAP_STATS_CACHE is not None:
+            return _AGENT_MAP_STATS_CACHE
+        stats = (
+            matches.groupby(["map", "agent_name", "role"], dropna=False, observed=True)
+            .agg(
+                appearances=("map_group_id", "size"),
+                resolved_maps=("player_won_map", "count"),
+                wins=("player_won_map", "sum"),
+                attack_acs_median=("acs-t", "median"),
+                attack_acs_samples=("acs-t", "count"),
+                defense_acs_median=("acs-ct", "median"),
+                defense_acs_samples=("acs-ct", "count"),
+            )
+            .reset_index()
         )
-        .reset_index()
-    )
-    map_groups = matches.groupby("map")["map_group_id"].nunique().rename("map_groups")
-    stats = stats.merge(map_groups, on="map", how="left", validate="many_to_one")
-    stats["pick_rate"] = stats["appearances"] / (stats["map_groups"] * 10)
-    stats["map_win_rate"] = stats["wins"] / stats["resolved_maps"].replace(0, pd.NA)
+        stats["map"] = stats["map"].astype(str)
+        stats["agent_name"] = stats["agent_name"].astype(str)
+        stats["role"] = stats["role"].astype(str)
+        map_groups = matches.groupby("map", observed=True)["map_group_id"].nunique().rename("map_groups")
+        map_groups.index = map_groups.index.astype(str)
+        stats = stats.merge(map_groups, on="map", how="left", validate="many_to_one")
+        stats["pick_rate"] = stats["appearances"] / (stats["map_groups"] * 10)
+        stats["map_win_rate"] = stats["wins"] / stats["resolved_maps"].replace(0, pd.NA)
 
-    z = _get_config()["wilson_z"]
-    n = stats["resolved_maps"].where(stats["resolved_maps"].gt(0))
-    proportion = stats["map_win_rate"]
-    denominator = 1 + (z * z / n)
-    center = proportion + (z * z / (2 * n))
-    margin = z * (((proportion * (1 - proportion) / n) + (z * z / (4 * n * n))).clip(lower=0) ** 0.5)
-    stats["win_rate_lower_bound"] = (center - margin) / denominator
-    return stats
+        z = _get_config()["wilson_z"]
+        stats["win_rate_lower_bound"] = _wilson_lower_bound(stats["wins"], stats["resolved_maps"], z)
+        _AGENT_MAP_STATS_CACHE = stats
+        return _AGENT_MAP_STATS_CACHE
 
 
 def _wilson_lower_bound(wins: pd.Series, total: pd.Series, z: float) -> pd.Series:
@@ -84,63 +118,109 @@ def _wilson_lower_bound(wins: pd.Series, total: pd.Series, z: float) -> pd.Serie
     return (center - margin) / denominator
 
 
-@lru_cache(maxsize=1)
 def _get_composition_stats() -> pd.DataFrame:
+    global _COMPOSITION_STATS_CACHE
+    if _COMPOSITION_STATS_CACHE is not None:
+        return _COMPOSITION_STATS_CACHE
     matches = _load_matches()
-    team_maps = (
-        matches.groupby(["map_group_id", "map", "player-team"], as_index=False)
-        .agg(
-            agents=("agent_name", lambda values: tuple(sorted(set(values)))),
-            won=("player_won_map", "first"),
+    with _ANALYTICS_LOCK:
+        if _COMPOSITION_STATS_CACHE is not None:
+            return _COMPOSITION_STATS_CACHE
+        # Fast dictionary aggregation avoids high-memory pandas multi-key groupby on 310k rows.
+        team_agents: dict[tuple[str, str, str], tuple[set[str], object]] = {}
+        for gid, mp, team, agent, won in zip(
+            matches["map_group_id"],
+            matches["map"].astype(str),
+            matches["player-team"],
+            matches["agent_name"].astype(str),
+            matches["player_won_map"],
+        ):
+            key = (gid, mp, team)
+            entry = team_agents.get(key)
+            if entry is None:
+                team_agents[key] = ({agent}, won)
+            else:
+                entry[0].add(agent)
+
+        comp_counts: dict[tuple[str, str], list[int]] = {}
+        for (_, mp, _), (agents_set, won) in team_agents.items():
+            if len(agents_set) != 5 or pd.isna(won):
+                continue
+            comp_key = (mp, " | ".join(sorted(agents_set)))
+            acc = comp_counts.get(comp_key)
+            won_int = int(bool(won))
+            if acc is None:
+                comp_counts[comp_key] = [1, won_int]
+            else:
+                acc[0] += 1
+                acc[1] += won_int
+
+        compositions = pd.DataFrame(
+            [
+                (mp, comp, apps, wins)
+                for (mp, comp), (apps, wins) in comp_counts.items()
+            ],
+            columns=["map", "composition", "appearances", "wins"],
         )
-    )
-    team_maps = team_maps[team_maps["agents"].map(len).eq(5) & team_maps["won"].notna()].copy()
-    team_maps["won"] = team_maps["won"].astype(int)
-    team_maps["composition"] = team_maps["agents"].map(" | ".join)
-    compositions = (
-        team_maps.groupby(["map", "composition"], as_index=False)
-        .agg(
-            appearances=("map_group_id", "size"),
-            wins=("won", "sum"),
+        compositions["win_rate"] = compositions["wins"] / compositions["appearances"]
+        compositions["win_rate_lower_bound"] = _wilson_lower_bound(
+            compositions["wins"], compositions["appearances"], _get_config()["wilson_z"],
         )
-    )
-    compositions["win_rate"] = compositions["wins"] / compositions["appearances"]
-    compositions["win_rate_lower_bound"] = _wilson_lower_bound(
-        compositions["wins"], compositions["appearances"], _get_config()["wilson_z"],
-    )
-    return compositions
+        _COMPOSITION_STATS_CACHE = compositions
+        return _COMPOSITION_STATS_CACHE
 
 
-@lru_cache(maxsize=1)
 def _get_pair_stats() -> pd.DataFrame:
+    global _PAIR_STATS_CACHE
+    if _PAIR_STATS_CACHE is not None:
+        return _PAIR_STATS_CACHE
     matches = _load_matches()
-    rows = []
-    for (group_id, map_name, team_name), team_map in matches.groupby(
-        ["map_group_id", "map", "player-team"], sort=False
-    ):
-        agents = sorted(set(team_map["agent_name"]))
-        if len(agents) != 5:
-            continue
-        won_val = team_map["player_won_map"].iloc[0]
-        if pd.isna(won_val):
-            continue
-        won = bool(won_val)
-        for agent_a, agent_b in itertools.combinations(agents, 2):
-            rows.append((group_id, map_name, team_name, agent_a, agent_b, won))
+    with _ANALYTICS_LOCK:
+        if _PAIR_STATS_CACHE is not None:
+            return _PAIR_STATS_CACHE
+        # Stream team lineups and aggregate pair counts directly (<1 MB peak vs 160 MB DataFrame).
+        team_agents: dict[tuple[str, str, str], tuple[set[str], object]] = {}
+        for gid, mp, team, agent, won in zip(
+            matches["map_group_id"],
+            matches["map"].astype(str),
+            matches["player-team"],
+            matches["agent_name"].astype(str),
+            matches["player_won_map"],
+        ):
+            key = (gid, mp, team)
+            entry = team_agents.get(key)
+            if entry is None:
+                team_agents[key] = ({agent}, won)
+            else:
+                entry[0].add(agent)
 
-    pairs = pd.DataFrame(
-        rows,
-        columns=["map_group_id", "map", "player-team", "agent_a", "agent_b", "won"],
-    )
-    grouped = (
-        pairs.groupby(["map", "agent_a", "agent_b"], as_index=False)
-        .agg(appearances=("map_group_id", "size"), wins=("won", "sum"))
-        .assign(win_rate=lambda frame: frame["wins"] / frame["appearances"])
-    )
-    grouped["win_rate_lower_bound"] = _wilson_lower_bound(
-        grouped["wins"], grouped["appearances"], _get_config()["wilson_z"],
-    )
-    return grouped
+        pair_counts: dict[tuple[str, str, str], list[int]] = {}
+        for (_, mp, _), (agents_set, won) in team_agents.items():
+            if len(agents_set) != 5 or pd.isna(won):
+                continue
+            won_int = int(bool(won))
+            for agent_a, agent_b in itertools.combinations(sorted(agents_set), 2):
+                pkey = (mp, agent_a, agent_b)
+                acc = pair_counts.get(pkey)
+                if acc is None:
+                    pair_counts[pkey] = [1, won_int]
+                else:
+                    acc[0] += 1
+                    acc[1] += won_int
+
+        grouped = pd.DataFrame(
+            [
+                (mp, a, b, apps, wins)
+                for (mp, a, b), (apps, wins) in pair_counts.items()
+            ],
+            columns=["map", "agent_a", "agent_b", "appearances", "wins"],
+        )
+        grouped["win_rate"] = grouped["wins"] / grouped["appearances"]
+        grouped["win_rate_lower_bound"] = _wilson_lower_bound(
+            grouped["wins"], grouped["appearances"], _get_config()["wilson_z"],
+        )
+        _PAIR_STATS_CACHE = grouped
+        return _PAIR_STATS_CACHE
 
 
 def get_maps() -> list[str]:
