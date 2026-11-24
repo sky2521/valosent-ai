@@ -1,0 +1,402 @@
+% ==============================================================================
+% CHAPTER 4: TOOLS, TECHNOLOGIES & IMPLEMENTATION
+% ==============================================================================
+\chapter{Tools, Technologies and Implementation}
+\label{chap:implementation}
+
+\section{Software and Hardware Requirements}
+\label{sec:requirements}
+
+The architecture of Valosent AI was designed and evaluated across two distinct operational environments: (1) \textit{Model Training and Research Environment}, and (2) \textit{Production Cloud Serving Environment}. Table~\ref{tab:hardware_requirements} and Table~\ref{tab:software_requirements} detail the hardware and software specifications governing these environments.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Hardware specifications across development and cloud production tiers.}
+\label{tab:hardware_requirements}
+\begin{tabularx}{\textwidth}{P{3.5cm} L L}
+\toprule
+\textbf{Hardware Component} & \textbf{Training \& Research Workstation} & \textbf{Production Cloud Tier (Render PaaS)} \\
+\midrule
+\textbf{Central Processor (CPU)} & Intel Core i7-13700H (14 cores, 20 threads) & 0.5 dedicated vCPU (AMD EPYC) \\
+\addlinespace
+\textbf{Graphics Processor (GPU)} & NVIDIA GeForce RTX 4060 Laptop (8GB VRAM) & CPU-only serverless runtime \\
+\addlinespace
+\textbf{System Memory (RAM)} & 16\,GB DDR5 5200\,MHz & 512\,MB RAM (Constrained lightweight tier) \\
+\addlinespace
+\textbf{Storage Subsystem} & 1\,TB PCIe 4.0 NVMe SSD & Ephemeral Container Storage + Supabase Cloud \\
+\addlinespace
+\textbf{Network Interface} & Gigabit Ethernet / Wi-Fi 6E (1 Gbps) & High-availability cloud backbone \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Software stack specifications and core dependencies.}
+\label{tab:software_requirements}
+\begin{tabularx}{\textwidth}{P{3.5cm} P{2.5cm} L}
+\toprule
+\textbf{Software Layer} & \textbf{Technology} & \textbf{Version \& Primary Responsibility} \\
+\midrule
+\textbf{Operating System} & Ubuntu 22.04 LTS & Production container base image \\
+\addlinespace
+\textbf{Runtime Language} & Python & Version 3.10+ / 3.14 (Async, Typing, Dataclasses) \\
+\addlinespace
+\textbf{Web API Framework} & Flask / Gunicorn & Flask 3.1.3, Gunicorn 23.0.0 (WSGI server) \\
+\addlinespace
+\textbf{Machine Learning} & Scikit-Learn & Version 1.9.1 (LinearSVC, MultinomialNB, TF-IDF) \\
+\addlinespace
+\textbf{Deep Learning Engine} & PyTorch & Version 2.14.1 (DistilBERT tensor inference) \\
+\addlinespace
+\textbf{Transformers Core} & Hugging Face & Transformers 4.57.6, Tokenizers 0.22.2 \\
+\addlinespace
+\textbf{Persistence Layer} & SQLAlchemy & Version 2.1.9 (ORM engine with SQLite) \\
+\addlinespace
+\textbf{Cloud PostgreSQL} & Supabase & Managed cloud PostgreSQL via PostgREST \\
+\addlinespace
+\textbf{Authentication \& 2FA} & Authlib / SMTP & Authlib 1.9.9 (OAuth 2.0), Python \texttt{smtplib} \\
+\addlinespace
+\textbf{Containerization} & Docker & Multi-stage micro-container engine \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Technology Stack Justification}
+\label{sec:tech_stack_justification}
+
+Each component of the Valosent AI technology stack was deliberately selected to fulfill specific performance, reliability, and economic constraints:
+\begin{enumerate}
+    \item \textbf{Python 3.10+ Ecosystem:} Python serves as the lingua franca of machine learning and data science. Its rich ecosystem facilitates seamless interoperability between numerical matrix computation libraries (NumPy, SciPy), transformer runtimes (PyTorch, Hugging Face), and lightweight production web servers (Flask).
+    \item \textbf{Scikit-Learn (Classical ML Foundation):} Scikit-Learn's C-optimized implementations of \texttt{LinearSVC} (built on \texttt{liblinear}) and \texttt{MultinomialNB} provide exceptionally fast vector operations. LinearSVC requires less than 5\,ms to process a vectorized text payload, enabling instant real-time HUD updates.
+    \item \textbf{Hugging Face Transformers \& DistilBERT:} While full BERT models incur unacceptable CPU inference latencies exceeding 200\,ms, \textit{DistilBERT-base-uncased} retains 97\% of BERT's contextual language comprehension while reducing parameter count to 66 million. This reduction enables sub-50\,ms transformer inference on standard CPU instances without requiring dedicated GPU hosting.
+    \item \textbf{Flask 3.1+ Micro-Framework:} Unlike monolithic web frameworks (\textit{e.g.}, Django), Flask imposes minimal memory and routing overhead. It provides complete architectural freedom to structure custom asynchronous API endpoints, custom JSON serialization, and specialized session middleware.
+    \item \textbf{Dual Persistence (SQLAlchemy ORM + Supabase Cloud):} Utilizing SQLAlchemy ORM enables local SQLite caching for sub-millisecond query execution. Simultaneously, Supabase provides an enterprise-grade cloud PostgreSQL database accessible over encrypted HTTPS REST protocols, eliminating the need to expose direct database ports to the public internet.
+    \item \textbf{Zero-Trust Authentication (Google OAuth 2.0 + Gmail OTP):} Relying solely on username-password pairs introduces severe vulnerability to credential stuffing and dictionary attacks. Combining Google OAuth 2.0 with time-limited (10-minute) one-time passwords dispatched via Gmail SMTP guarantees enterprise-grade account security without requiring third-party subscription auth providers.
+\end{enumerate}
+
+\section{Mathematical Formulation of Algorithms}
+\label{sec:math_formulation}
+
+A rigorous understanding of the Valosent AI classification engine requires mathematical formalization of its constituent algorithms.
+
+\subsection{Sub-Linear Term Frequency-Inverse Document Frequency (TF-IDF)}
+Given a corpus of reviews $D = \{d_1, d_2, \dots, d_N\}$ and a vocabulary $V$ containing $|V| = 10,000$ unique n-gram features (unigrams, bigrams, and trigrams), the term frequency $\text{tf}(t, d)$ denotes the raw frequency of token $t$ in document $d$. To prevent high-frequency words from dominating the feature space, Valosent AI computes the \textit{sub-linear logarithmic term frequency}:
+\begin{equation}
+    \text{wf}(t, d) = 
+    \begin{cases} 
+        1 + \ln(\text{tf}(t, d)), & \text{if } \text{tf}(t, d) > 0 \\ 
+        0, & \text{otherwise} 
+    \end{cases}
+    \label{eq:sublinear_tf}
+\end{equation}
+
+The inverse document frequency $\text{idf}(t)$ penalizes tokens that occur indiscriminately across the entire corpus:
+\begin{equation}
+    \text{idf}(t) = \ln\left(\frac{1 + N}{1 + \text{df}(t)}\right) + 1
+    \label{eq:idf}
+\end{equation}
+where $N = |D|$ is the total number of documents and $\text{df}(t) = |\{d \in D : t \in d\}|$ is the document frequency of token $t$. The smooth addition of $+1$ inside the logarithm prevents division-by-zero errors.
+
+The unnormalized TF-IDF weight is the product:
+\begin{equation}
+    \text{tfidf}(t, d) = \text{wf}(t, d) \times \text{idf}(t)
+\end{equation}
+
+Finally, each document vector $\mathbf{x} = (\text{tfidf}(t_1, d), \dots, \text{tfidf}(t_{|V|}, d))^T$ is projected onto the unit sphere via Euclidean ($L_2$) normalization to eliminate document length bias:
+\begin{equation}
+    \mathbf{x}_{\text{norm}} = \frac{\mathbf{x}}{\|\mathbf{x}\|_2} = \frac{\mathbf{x}}{\sqrt{\sum_{i=1}^{|V|} x_i^2}}
+    \label{eq:l2_norm}
+\end{equation}
+
+\subsection{Linear Support Vector Machine (LinearSVC)}
+Given a labeled training set $\{(\mathbf{x}_i, y_i)\}_{i=1}^m$ where $\mathbf{x}_i \in \mathbb{R}^{|V|}$ and $y_i \in \{-1, +1\}$, the objective of the Linear Support Vector Machine is to discover a separating hyperplane defined by weight vector $\mathbf{w} \in \mathbb{R}^{|V|}$ and bias scalar $b \in \mathbb{R}$:
+\begin{equation}
+    f(\mathbf{x}) = \mathbf{w}^T \mathbf{x} + b
+\end{equation}
+that maximizes the geometric margin $\frac{2}{\|\mathbf{w}\|}$ while penalizing margin violations via soft-margin slack variables $\xi_i \ge 0$.
+
+The primal optimization problem is formulated as:
+\begin{equation}
+    \min_{\mathbf{w}, b, \bm{\xi}} \frac{1}{2} \|\mathbf{w}\|^2 + C \sum_{i=1}^m \xi_i
+    \label{eq:svm_primal}
+\end{equation}
+subject to the linear constraints:
+\begin{equation}
+    y_i (\mathbf{w}^T \mathbf{x}_i + b) \ge 1 - \xi_i, \quad \xi_i \ge 0, \quad \forall i \in \{1, \dots, m\}
+\end{equation}
+where $C > 0$ is the regularization hyperparameter governing the trade-off between margin maximization and training error penalty.
+
+Constructing the Lagrangian using dual multipliers $\alpha_i \ge 0$ and $\beta_i \ge 0$:
+\begin{equation}
+    \mathcal{L}(\mathbf{w}, b, \bm{\xi}, \bm{\alpha}, \bm{\beta}) = \frac{1}{2} \|\mathbf{w}\|^2 + C \sum_{i=1}^m \xi_i - \sum_{i=1}^m \alpha_i \left[ y_i (\mathbf{w}^T \mathbf{x}_i + b) - 1 + \xi_i \right] - \sum_{i=1}^m \beta_i \xi_i
+\end{equation}
+
+Applying the Karush-Kuhn-Tucker (KKT) stationarity conditions:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial \mathbf{w}} = 0 \implies \mathbf{w} = \sum_{i=1}^m \alpha_i y_i \mathbf{x}_i
+\end{equation}
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial b} = 0 \implies \sum_{i=1}^m \alpha_i y_i = 0
+\end{equation}
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial \xi_i} = 0 \implies C - \alpha_i - \beta_i = 0 \implies 0 \le \alpha_i \le C
+\end{equation}
+
+Substituting these conditions yields the Wolfe Dual optimization problem:
+\begin{equation}
+    \max_{\bm{\alpha}} \sum_{i=1}^m \alpha_i - \frac{1}{2} \sum_{i=1}^m \sum_{j=1}^m \alpha_i \alpha_j y_i y_j (\mathbf{x}_i^T \mathbf{x}_j)
+    \label{eq:svm_dual}
+\end{equation}
+subject to $\sum_{i=1}^m \alpha_i y_i = 0$ and $0 \le \alpha_i \le C$ for all $i$. For multiclass categorization ($K = 3$ classes: Positive, Neutral, Negative), the model employs a One-vs-Rest (OvR) decision strategy.
+
+\subsubsection{Platt Scaling Probability Calibration}
+Because raw SVM outputs are uncalibrated geometric margins $f(\mathbf{x}) \in (-\infty, +\infty)$, Valosent AI applies \textbf{Platt scaling} to map margins into true posterior probabilities:
+\begin{equation}
+    P(y = 1 \mid \mathbf{x}) = \frac{1}{1 + \exp(A f(\mathbf{x}) + B)}
+    \label{eq:platt_scaling}
+\end{equation}
+where scalar parameters $A$ and $B$ are estimated via maximum likelihood estimation over an internal cross-validation loop.
+
+\subsection{Multinomial Naive Bayes (MNB)}
+The Multinomial Naive Bayes classifier formulates text categorization under the conditional independence assumption. Given a feature vector $\mathbf{x} = (x_1, \dots, x_n)$ representing token counts, the posterior probability of class $c \in \{\text{Pos}, \text{Neu}, \text{Neg}\}$ is given by Bayes' Theorem:
+\begin{equation}
+    P(c \mid \mathbf{x}) = \frac{P(c) P(\mathbf{x} \mid c)}{P(\mathbf{x})} \propto P(c) \prod_{k=1}^n P(t_k \mid c)^{x_k}
+    \label{eq:mnb_bayes}
+\end{equation}
+
+Applying the log-transform to prevent numerical underflow, the Maximum A Posteriori (MAP) classification rule is:
+\begin{equation}
+    \hat{c} = \arg\max_{c} \left[ \ln P(c) + \sum_{k=1}^n x_k \ln P(t_k \mid c) \right]
+    \label{eq:mnb_map}
+\end{equation}
+
+The feature conditional likelihood $P(t_k \mid c)$ is estimated with \textbf{Laplace add-one smoothing} to guarantee non-zero probabilities for rare tokens:
+\begin{equation}
+    P(t_k \mid c) = \frac{N_{ck} + \alpha}{N_c + \alpha |V|}
+    \label{eq:laplace_smoothing}
+\end{equation}
+where $N_{ck}$ is the total count of token $t_k$ in class $c$, $N_c = \sum_k N_{ck}$ is the aggregate token count in class $c$, $|V|$ is vocabulary size, and $\alpha = 1.0$ is the smoothing hyperparameter.
+
+\subsection{DistilBERT Contextual Transformer and Multi-Head Self-Attention}
+In Tier 3, Valosent AI executes a fine-tuned \textit{DistilBERT} architecture. DistilBERT processes tokens through a bidirectional transformer encoder comprising 6 transformer layers, 12 attention heads per layer, and a hidden embedding dimensionality of $d_{\text{model}} = 768$.
+
+Given an input token representation matrix $X \in \mathbb{R}^{n \times d_{\text{model}}}$ for a sequence of length $n$, the model computes Query ($Q$), Key ($K$), and Value ($V$) projection matrices:
+\begin{equation}
+    Q = X W^Q, \quad K = X W^K, \quad V = X W^V
+\end{equation}
+where $W^Q, W^K \in \mathbb{R}^{d_{\text{model}} \times d_k}$ and $W^V \in \mathbb{R}^{d_{\text{model}} \times d_v}$ with $d_k = d_v = \frac{d_{\text{model}}}{h} = 64$.
+
+The \textbf{Scaled Dot-Product Attention} computes normalized attention weights via:
+\begin{equation}
+    \text{Attention}(Q, K, V) = \text{softmax}\left( \frac{Q K^T}{\sqrt{d_k}} \right) V
+    \label{eq:self_attention}
+\end{equation}
+where the scaling factor $\frac{1}{\sqrt{d_k}}$ prevents dot products from growing excessively large in high dimensions, which would drive the softmax function into regions with vanishingly small gradients.
+
+For multi-head attention across $h = 12$ parallel representation subspaces:
+\begin{equation}
+    \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h) W^O
+\end{equation}
+where $\text{head}_i = \text{Attention}(X W_i^Q, X W_i^K, X W_i^V)$ and $W^O \in \mathbb{R}^{h d_v \times d_{\text{model}}}$.
+
+\subsubsection{Knowledge Distillation Loss}
+During pre-training, the student network is trained to reproduce the behavior of the full BERT-Base teacher network via a triple objective loss:
+\begin{equation}
+    \mathcal{L}_{\text{total}} = \alpha \mathcal{L}_{\text{ce}} + \beta \mathcal{L}_{\text{distil}} + \gamma \mathcal{L}_{\text{cos}}
+    \label{eq:distil_loss}
+\end{equation}
+where $\mathcal{L}_{\text{ce}}$ is cross-entropy with hard labels, $\mathcal{L}_{\text{distil}} = \text{KL}(p_{\text{student}}^{\tau} \parallel p_{\text{teacher}}^{\tau})$ is the Kullback-Leibler divergence between temperature-softened probability distributions with temperature $\tau$, and $\mathcal{L}_{\text{cos}}$ aligns the hidden state orientation vectors.
+
+\subsection{Adaptive Multi-Tier Confidence Routing Function}
+The core operational logic of Valosent AI is governed by an adaptive piecewise decision rule $R(d)$ that dynamically routes document $d$ through the model hierarchy:
+\begin{equation}
+    R(d) = 
+    \begin{cases}
+        \text{LinearSVC}(d), & \text{if } \max_c P_{\text{SVC}}(c \mid d) \ge \tau_1 \\
+        \text{DistilBERT}(d), & \text{if } \max_c P_{\text{SVC}}(c \mid d) < \tau_1 \text{ and } \Delta P_{\text{BERT}} \ge \tau_2 \\
+        \text{LLM\_Explainer}(d), & \text{otherwise (Extreme Ambiguity / Sarcasm)}
+    \end{cases}
+    \label{eq:routing_rule}
+\end{equation}
+where $\tau_1 = 0.80$ is the Tier-1 confidence threshold, $\Delta P_{\text{BERT}} = P_{(1)} - P_{(2)}$ is the margin between the top two transformer class probabilities, and $\tau_2 = 0.15$ is the ambiguity boundary.
+
+\section{Core Implementation Code Listings}
+\label{sec:code_listings}
+
+To ensure complete technical transparency and reproducibility, this section documents the verified source code implementations of the primary subsystems.
+
+\subsection{Text Preprocessing and Slang Normalization Engine}
+Listing~\ref{lst:text_processing} presents the implementation of the lexical normalization pipeline from \texttt{src/text\_processing.py}.
+
+\begin{lstlisting}[language=Python, caption={Text preprocessing and domain slang normalization pipeline (\texttt{src/text\_processing.py}).}, label={lst:text_processing}]
+import re
+from typing import Dict
+
+# Domain-specific Valorant slang normalization dictionary
+VALORANT_SLANG_MAP: Dict[str, str] = {
+    "diff": "performance gap difference",
+    "clutch": "exceptional victory under pressure",
+    "nerf": "reduced effectiveness weakened",
+    "buff": "increased effectiveness strengthened",
+    "whiff": "completely missed aim failed",
+    "instalock": "instantly selected selfishly",
+    "lineup": "precalculated tactical ability angle",
+    "op": "overpowered operator sniper",
+    "res": "resurrection reviving teammate",
+    "smurf": "highly skilled player in low rank",
+    "throwing": "deliberately losing griefing",
+    "inting": "intentional feeding dying repeatedly"
+}
+
+def clean_gaming_text(text: str) -> str:
+    """Sanitizes raw esports text, expands contractions, and normalizes slang."""
+    if not isinstance(text, str):
+        return ""
+    
+    # 1. Lowercase normalization
+    cleaned = text.lower()
+    
+    # 2. Character repetition compression (e.g., 'sooooo' -> 'soo')
+    cleaned = re.sub(r'(.)\1{2,}', r'\1\1', cleaned)
+    
+    # 3. Contraction expansion
+    cleaned = re.sub(r"won\'t", "will not", cleaned)
+    cleaned = re.sub(r"can\'t", "cannot", cleaned)
+    cleaned = re.sub(r"haven\'t", "have not", cleaned)
+    cleaned = re.sub(r"n\'t", " not", cleaned)
+    cleaned = re.sub(r"\'re", " are", cleaned)
+    cleaned = re.sub(r"\'s", " is", cleaned)
+    cleaned = re.sub(r"\'d", " would", cleaned)
+    cleaned = re.sub(r"\'ll", " will", cleaned)
+    
+    # 4. Domain slang token replacement using word boundaries
+    for slang, replacement in VALORANT_SLANG_MAP.items():
+        pattern = r'\b' + re.escape(slang) + r'\b'
+        cleaned = re.sub(pattern, replacement, cleaned)
+        
+    # 5. Clean superfluous punctuation while preserving whitespace
+    cleaned = re.sub(r'[^a-zA-Z0-9\s]', ' ', cleaned)
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    
+    return cleaned
+\end{lstlisting}
+
+\subsection{Classical Machine Learning Training and Calibration}
+Listing~\ref{lst:model_training} presents the training and probability calibration implementation for Tier 1 and Tier 2 from \texttt{src/ml\_model.py}.
+
+\begin{lstlisting}[language=Python, caption={Classical model training and Platt calibration (\texttt{src/ml\_model.py}).}, label={lst:model_training}]
+import joblib
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.svm import LinearSVC
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.pipeline import Pipeline
+
+def build_and_train_classical_pipeline(X_train, y_train, model_type="svm"):
+    """Constructs a sublinear TF-IDF vectorizer pipeline and trains a calibrated classifier."""
+    vectorizer = TfidfVectorizer(
+        ngram_range=(1, 3),
+        max_features=10000,
+        sublinear_tf=True,
+        norm='l2',
+        strip_accents='unicode'
+    )
+    
+    if model_type == "svm":
+        base_estimator = LinearSVC(C=1.0, max_iter=2500, random_state=42)
+        # Apply Platt scaling sigmoid calibration via 5-fold cross-validation
+        classifier = CalibratedClassifierCV(estimator=base_estimator, method='sigmoid', cv=5)
+    elif model_type == "nb":
+        classifier = MultinomialNB(alpha=1.0)
+    else:
+        raise ValueError(f"Unsupported model type: {model_type}")
+        
+    pipeline = Pipeline([
+        ('vectorizer', vectorizer),
+        ('classifier', classifier)
+    ])
+    
+    # Execute model fitting
+    pipeline.fit(X_train, y_train)
+    return pipeline
+\end{lstlisting}
+
+\subsection{DistilBERT PyTorch Transformer Inference Pipeline}
+Listing~\ref{lst:transformer_inference} documents the PyTorch inference wrapper for the Tier-3 DistilBERT model in \texttt{src/inference.py}.
+
+\begin{lstlisting}[language=Python, caption={DistilBERT PyTorch tensor inference engine (\texttt{src/inference.py}).}, label={lst:transformer_inference}]
+import torch
+import torch.nn.functional as F
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+class DistilBERTSentimentEngine:
+    def __init__(self, model_path: str = "distilbert-base-uncased", num_labels: int = 3):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            model_path, num_labels=num_labels
+        ).to(self.device)
+        self.model.eval()
+        self.label_map = {0: "Negative", 1: "Neutral", 2: "Positive"}
+
+    @torch.no_grad()
+    def predict(self, raw_text: str):
+        """Executes tokenization and forward pass, returning calibrated probabilities."""
+        inputs = self.tokenizer(
+            raw_text,
+            max_length=128,
+            padding=True,
+            truncation=True,
+            return_tensors="pt"
+        ).to(self.device)
+        
+        logits = self.model(**inputs).logits
+        probs = F.softmax(logits, dim=1).squeeze().cpu().numpy()
+        pred_idx = int(probs.argmax())
+        
+        confidence = float(probs[pred_idx])
+        pred_label = self.label_map[pred_idx]
+        
+        return {
+            "label": pred_label,
+            "confidence": round(confidence, 4),
+            "probabilities": {
+                "Negative": round(float(probs[0]), 4),
+                "Neutral": round(float(probs[1]), 4),
+                "Positive": round(float(probs[2]), 4)
+            }
+        }
+\end{lstlisting}
+
+\section{Challenges and Engineering Solutions}
+\label{sec:challenges_solutions}
+
+During the architectural engineering and deployment of Valosent AI, several formidable technical obstacles were encountered. Table~\ref{tab:challenges_solutions} categorizes these challenges alongside the concrete engineering solutions developed to overcome them.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Systemic engineering challenges and technical architectural solutions.}
+\label{tab:challenges_solutions}
+\begin{tabularx}{\textwidth}{P{4.2cm} L}
+\toprule
+\textbf{Engineering Challenge} & \textbf{Architectural Resolution in Valosent AI} \\
+\midrule
+\textbf{High-Frequency Slang Sparsity} & Implemented an automated domain dictionary regex preprocessor in \texttt{src/text\_processing.py} that expands and normalizes tactical gaming idioms prior to TF-IDF vectorization. \\
+\addlinespace
+\textbf{Severe Memory Caps on Render PaaS (512\,MB Limit)} & Optimized PyTorch memory by enabling \texttt{torch.no\_grad()}, setting \texttt{MKL\_NUM\_THREADS=1}, pre-vectorizing pipelines, and decoupling heavy transformer weights from the primary web process. \\
+\addlinespace
+\textbf{Entity Name Polysemy (\textit{e.g.}, ``Haven'' vs. ``haven't'')} & Constructed strict boundary token matchers with contraction pre-expansion, guaranteeing that map names are never conflated with common auxiliary verbs. \\
+\addlinespace
+\textbf{Platt Calibration Shift in LinearSVC} & Wrapped LinearSVC inside a 5-fold cross-validated sigmoid \texttt{CalibratedClassifierCV}, producing mathematically bounded posterior probabilities without sacrificing speed. \\
+\addlinespace
+\textbf{Zero-Trust Auth Without Third-Party Subscriptions} & Engineered custom SMTP-based Gmail OTP dispatch coupled with Google OAuth 2.0 via Authlib, enforcing 10-minute cryptographically signed session tokens. \\
+\addlinespace
+\textbf{Dual-Database Synchronization Race Conditions} & Structured a decoupled write-ahead cache: local SQLite stores instant reviews synchronously, while background daemon threads dispatch async upserts to Supabase PostgreSQL. \\
+\addlinespace
+\textbf{Explainability Overhead in Live UI} & Developed a linear weight projection algorithm that maps top feature weights directly back to input word tokens, rendering colored saliency spans in sub-millisecond time. \\
+\bottomrule
+\end{tabularx}
+\end{table}

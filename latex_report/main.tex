@@ -1,0 +1,40 @@
+\documentclass[12pt,a4paper]{report}
+
+% Include preamble with package imports, styling, and geometry
+\input{preamble}
+
+\begin{document}
+
+% ------------------------------------------------------------------------------
+% PRELIMINARY PAGES (ROMAN NUMERALS)
+% ------------------------------------------------------------------------------
+\pagenumbering{roman}
+\input{frontmatter}
+
+% ------------------------------------------------------------------------------
+% MAIN CHAPTERS (ARABIC NUMERALS)
+% ------------------------------------------------------------------------------
+\newpage
+\pagenumbering{arabic}
+\justifying
+
+\input{chapters/chapter1}
+\input{chapters/chapter2}
+\input{chapters/chapter3}
+\input{chapters/chapter4}
+\input{chapters/chapter5}
+\input{chapters/chapter6}
+
+% ------------------------------------------------------------------------------
+% REFERENCES & BIBLIOGRAPHY
+% ------------------------------------------------------------------------------
+\newpage
+\input{references}
+
+% ------------------------------------------------------------------------------
+% ANNEXURES & APPENDIX
+% ------------------------------------------------------------------------------
+\newpage
+\input{annexures}
+
+\end{document}

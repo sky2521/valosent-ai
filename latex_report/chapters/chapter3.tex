@@ -1,0 +1,320 @@
+% ==============================================================================
+% CHAPTER 3: SYSTEM METHODOLOGY & ARCHITECTURE
+% ==============================================================================
+\chapter{System Methodology and Architecture}
+\label{chap:methodology_architecture}
+
+\section{Iterative Development Life Cycle}
+\label{sec:sdlc}
+
+To successfully bridge exploratory natural language processing research with the reliability demands of a production web application, Valosent AI was engineered using an adapted \textbf{CRISP-DM} (Cross-Industry Standard Process for Data Mining) framework integrated with \textbf{Agile} software development principles. Standard linear waterfall models are fundamentally ill-suited for machine learning projects, where data distributions, vocabulary shifts, and model performance metrics necessitate frequent cyclical iterations between data curation, feature engineering, and model evaluation.
+
+Figure~\ref{fig:sdlc_cycle} illustrates the six-phase iterative methodology governing the Valosent AI development lifecycle.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=2.2cm, auto,
+    stage/.style={rectangle, draw=krmunavy, fill=blue!6!white, text width=3.4cm, text centered, rounded corners=4pt, minimum height=1.2cm, line width=1.1pt},
+    arr/.style={-Latex[length=3mm], line width=1.2pt, draw=krmunavy}]
+    
+    \node [stage] (p1) {\textbf{Phase 1: Domain Discovery}\\Esports Meta \& Problem Definition};
+    \node [stage, right=1.6cm of p1] (p2) {\textbf{Phase 2: Data Engineering}\\100k+ Review Extraction \& Cleaning};
+    \node [stage, below=1.6cm of p2] (p3) {\textbf{Phase 3: NLP Preprocessing}\\Slang Lexicon \& Tokenization};
+    \node [stage, left=1.6cm of p3] (p4) {\textbf{Phase 4: Multi-Tier Modeling}\\NB, LinearSVC, DistilBERT, LLM};
+    \node [stage, below=1.6cm of p4] (p5) {\textbf{Phase 5: Full-Stack Web HUD}\\Flask, OAuth 2.0, OTP, Supabase};
+    \node [stage, right=1.6cm of p5] (p6) {\textbf{Phase 6: CI/CD \& Deployment}\\Docker Container \& Render PaaS};
+    
+    \path [arr] (p1) -- (p2);
+    \path [arr] (p2) -- (p3);
+    \path [arr] (p3) -- (p4);
+    \path [arr] (p4) -- (p5);
+    \path [arr] (p5) -- (p6);
+    \path [arr] (p4.north) [bend right=30] to node [left, font=\footnotesize] {Error Analysis Iteration} (p2.south);
+    \path [arr] (p6.north) [bend right=45] to node [right, font=\footnotesize] {Continuous Live Telemetry} (p1.east);
+\end{tikzpicture}
+\caption{Adapted iterative CRISP-DM lifecycle for the Valosent AI platform.}
+\label{fig:sdlc_cycle}
+\end{figure}
+
+The lifecycle encompasses six distinct phases:
+\begin{enumerate}
+    \item \textbf{Domain Discovery \& Requirement Engineering:} Identified key stakeholder requirements across game balance designers, tournament analysts, and casual players. Formulated the multi-tier latency-accuracy trade-off specifications.
+    \item \textbf{Data Engineering \& Corpus Ingestion:} Harvested authentic community reviews from the Steam Community web API and public Reddit gaming corpora, followed by deduplication, null-byte stripping, and schema unification.
+    \item \textbf{Domain Preprocessing Pipeline:} Implemented lexical normalization, valence-preserving slang dictionary lookup, and sub-linear TF-IDF representation.
+    \item \textbf{Multi-Tier Modeling \& Cascading:} Benchmarked statistical models against deep transformers; calibrated probability thresholds for adaptive inference routing.
+    \item \textbf{Full-Stack Integration \& Zero-Trust Security:} Designed the cyberpunk Tactical HUD interface, RESTful API endpoints, and dual-factor authentication (Google OAuth 2.0 and Gmail OTP).
+    \item \textbf{Containerization, Testing \& Cloud Deployment:} Packaged the application into a minimal Docker Linux container, verified via continuous unit test suites, and deployed to Render Cloud PaaS.
+\end{enumerate}
+
+\section{System Architecture}
+\label{sec:system_architecture}
+
+Valosent AI is designed as a modular, decoupled, five-tier system architecture. Figure~\ref{fig:tikz_architecture} presents the complete structural block diagram illustrating the flow of data, control, and authentication across all operational subsystems.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    scale=0.92, transform shape,
+    tierbox/.style={rectangle, draw=krmunavy!80, fill=gray!3!white, line width=1pt, rounded corners=6pt, inner sep=10pt},
+    comp/.style={rectangle, draw=darkblue, fill=blue!8!white, line width=1pt, rounded corners=3pt, minimum width=3.4cm, minimum height=1.1cm, text centered, font=\small\bfseries},
+    authcomp/.style={rectangle, draw=krmured, fill=red!8!white, line width=1pt, rounded corners=3pt, minimum width=3.4cm, minimum height=1.1cm, text centered, font=\small\bfseries},
+    mlcomp/.style={rectangle, draw=orange!80!black, fill=orange!8!white, line width=1pt, rounded corners=3pt, minimum width=3.4cm, minimum height=1.1cm, text centered, font=\small\bfseries},
+    dbcomp/.style={rectangle, draw=purple!80!black, fill=purple!8!white, line width=1pt, rounded corners=3pt, minimum width=3.4cm, minimum height=1.1cm, text centered, font=\small\bfseries},
+    arrow/.style={-Latex[length=3mm], line width=1.3pt, draw=krmunavy},
+    darrow/.style={Latex[length=2.5mm]-Latex[length=2.5mm], line width=1.3pt, draw=krmunavy}
+]
+
+    % TIER 1: CLIENT PRESENTATION LAYER
+    \node[comp] (hud) {Cyberpunk Tactical HUD\\(HTML5, CSS3, JavaScript)};
+    \node[comp, right=1.2cm of hud] (authui) {Auth \& 2FA Modal\\(OAuth / OTP Input)};
+    \begin{scope}[on background layer]
+        \node[tierbox, fit=(hud) (authui), label={[font=\bfseries\color{krmunavy}]above:TIER 1: CLIENT PRESENTATION LAYER (BROWSER)}] (t1) {};
+    \end{scope}
+
+    % TIER 2: APPLICATION CONTROLLER & REST API
+    \node[comp, below=1.8cm of hud] (flask) {Flask REST API Core\\(Endpoint Routing \& Sessions)};
+    \node[authcomp, below=1.8cm of authui] (authmw) {Auth Security Middleware\\(OAuth 2.0 / SMTP OTP Relay)};
+    \begin{scope}[on background layer]
+        \node[tierbox, fit=(flask) (authmw), label={[font=\bfseries\color{krmunavy}]above:TIER 2: APPLICATION CONTROLLER \& API GATEWAY (PYTHON 3.10+)}] (t2) {};
+    \end{scope}
+
+    % TIER 3: MULTI-TIER INFERENCE ENGINE
+    \node[mlcomp, below=2.0cm of flask] (svm) {Tier-1: LinearSVC\\(Sub-linear TF-IDF, 4.2\,ms)};
+    \node[mlcomp, right=1.2cm of svm] (nb) {Tier-2: Naive Bayes\\(Multinomial, 1.8\,ms)};
+    \node[mlcomp, below=0.6cm of svm] (distil) {Tier-3: DistilBERT\\(Fine-Tuned PyTorch, 44\,ms)};
+    \node[mlcomp, below=0.6cm of nb] (llm) {Tier-4: LLM Reasoning\\(Zero-Shot Edge Explainer)};
+    \begin{scope}[on background layer]
+        \node[tierbox, fit=(svm) (nb) (distil) (llm), label={[font=\bfseries\color{orange!80!black}]above:TIER 3: MULTI-TIER HYBRID NLP INFERENCE CASCADE}] (t3) {};
+    \end{scope}
+
+    % TIER 4: PERSISTENCE & STORAGE
+    \node[dbcomp, below=1.8cm of distil] (sqlite) {Local SQLite Cache\\(SQLAlchemy ORM Engine)};
+    \node[dbcomp, below=1.8cm of llm] (supabase) {Supabase Cloud DB\\(PostgreSQL via PostgREST)};
+    \begin{scope}[on background layer]
+        \node[tierbox, fit=(sqlite) (supabase), label={[font=\bfseries\color{purple!80!black}]above:TIER 4: DUAL PERSISTENCE \& CLOUD STORAGE LAYER}] (t4) {};
+    \end{scope}
+
+    % INTER-TIER CONNECTIONS
+    \path [darrow] (hud) -- node[left, font=\footnotesize] {Async AJAX / JSON} (flask);
+    \path [darrow] (authui) -- node[right, font=\footnotesize] {OAuth / OTP Token} (authmw);
+    \path [darrow] (flask) -- node[above, font=\footnotesize] {Session Validation} (authmw);
+    
+    \path [arrow] (flask) -- node[left, font=\footnotesize] {Vectorized Review} (svm);
+    \path [arrow] (svm) -- node[above, font=\footnotesize] {Confidence Check} (nb);
+    \path [arrow] (svm) -- node[left, font=\footnotesize] {Low Confidence Route} (distil);
+    \path [arrow] (distil) -- node[above, font=\footnotesize] {Ambiguity Fallback} (llm);
+    
+    \path [darrow] (flask) [bend right=55] to node[left, font=\footnotesize] {Review Storage / History} (sqlite);
+    \path [darrow] (sqlite) -- node[above, font=\footnotesize] {Cloud Sync} (supabase);
+
+\end{tikzpicture}
+\caption{Detailed vector system architecture diagram of the Valosent AI platform.}
+\label{fig:tikz_architecture}
+\end{figure}
+
+The architecture comprises four core functional layers:
+
+\subsection{Tier 1: Client Presentation Layer}
+The frontend interface is engineered as a responsive, zero-latency Tactical Heads-Up Display (HUD) utilizing semantic HTML5, modern CSS3 with CSS custom properties (variables) for dynamic theme switching, and vanilla ES6+ JavaScript. The interface deliberately eschews heavy frontend frameworks (\textit{e.g.}, React, Angular) to eliminate virtual DOM reconciliation overhead and minimize bundle download latency on client devices. All communications with the backend are executed via asynchronous `fetch` calls exchanging lightweight JSON payloads.
+
+\subsection{Tier 2: Application Controller and Security Middleware}
+The central application server is built on Flask 3.1+, managed by the Gunicorn WSGI HTTP production server. The controller performs three critical functions:
+\begin{enumerate}
+    \item \textbf{RESTful Endpoint Routing:} Serves `/api/analyze` for single-review inference, `/api/history` for historical telemetry retrieval, `/api/predict-match` for 5v5 team outcome simulation, and `/auth/*` for authentication workflows.
+    \item \textbf{Authentication Security Middleware:} Implements zero-trust session validation. The application enforces dual-factor authentication combining Google OAuth 2.0 (via the Authlib library) with SMTP-backed Gmail OTP verification. Session states are stored in cryptographically signed, HttpOnly, SameSite cookies with a strict 10-minute expiration window to prevent cross-site request forgery (CSRF) and session hijacking.
+    \item \textbf{Input Validation and Sanitization:} Cleans incoming review payloads, enforces maximum string length limits (2,000 characters), strips malicious control characters, and prevents SQL injection attempts.
+\end{enumerate}
+
+\subsection{Tier 3: Multi-Tier Hybrid Inference Engine}
+The machine learning subsystem is decoupled into a four-stage cascading hierarchy:
+\begin{itemize}
+    \item \textbf{Tier 1 (Linear Support Vector Classifier):} Processes incoming vectorized text through a calibrated LinearSVC pipeline. For over 85\% of standard community reviews, LinearSVC delivers conclusive classifications with calibrated confidence scores exceeding $\tau_1 = 0.80$ within 4.2\,ms.
+    \item \textbf{Tier 2 (Multinomial Naive Bayes):} Acts as an ultra-fast statistical cross-validation prior (1.8\,ms latency) to detect blatant keyword polarities and baseline valence.
+    \item \textbf{Tier 3 (Fine-Tuned DistilBERT):} When Tier-1 confidence falls below $\tau_1$, the query is dynamically routed to the fine-tuned \textit{DistilBERT-base-uncased} model. DistilBERT processes bidirectional token attention to resolve subtle negation inversions, complex syntax, and multi-clause dependencies in 44.6\,ms.
+    \item \textbf{Tier 4 (Large Language Model Reasoning):} For exceptionally ambiguous, sarcastic, or multi-topic reviews where transformer class certainty remains ambiguous ($\Delta p < 0.15$), the query triggers an explainable LLM reasoning prompt that outputs explicit natural language rationales.
+\end{itemize}
+
+\subsection{Tier 4: Dual Persistence Layer}
+Data integrity and operational reliability are guaranteed through a dual-persistence architecture:
+\begin{enumerate}
+    \item \textbf{Local Relational Cache (SQLite + SQLAlchemy ORM):} Provides zero-latency local review caching, offline fallback capability, and local user preference storage.
+    \item \textbf{Cloud Persistence (Supabase PostgreSQL):} Syncs saved reviews, verified user credentials, and match telemetry asynchronously to a remote PostgreSQL instance hosted on Supabase via secure HTTPS PostgREST protocols.
+\end{enumerate}
+
+\section{Data Description and Preprocessing Pipeline}
+\label{sec:data_preprocessing}
+
+\subsection{Dataset Curation and Schema}
+The experimental foundation of Valosent AI is a curated corpus of \textbf{102,209 authentic player reviews} harvested from the Steam Community web API, Reddit (\textit{r/VALORANT}), and official competitive esports forums between June 2020 and October 2026. Table~\ref{tab:dataset_schema} defines the formal relational schema of the dataset.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Relational schema definition of the 100k+ Valorant review dataset.}
+\label{tab:dataset_schema}
+\begin{tabularx}{\textwidth}{P{3.2cm} P{2.6cm} L}
+\toprule
+\textbf{Field Name} & \textbf{Data Type} & \textbf{Description \& Constraint} \\
+\midrule
+\texttt{review\_id} & VARCHAR(36) & Unique UUID primary key identifying the review record. \\
+\addlinespace
+\texttt{review\_text} & TEXT & Raw community review text (length: 10 to 2,000 characters). \\
+\addlinespace
+\texttt{sentiment\_label} & VARCHAR(10) & Categorical ground truth: \texttt{Positive}, \texttt{Neutral}, \texttt{Negative}. \\
+\addlinespace
+\texttt{sentiment\_score} & FLOAT & Numerical review rating mapped to $[-1.0, +1.0]$. \\
+\addlinespace
+\texttt{agent\_mentioned} & VARCHAR(30) & Associated Agent entity (\textit{e.g.}, Yoru, Jett, Gekko, Vyse, None). \\
+\addlinespace
+\texttt{map\_mentioned} & VARCHAR(30) & Associated Map entity (\textit{e.g.}, Ascent, Haven, Lotus, None). \\
+\addlinespace
+\texttt{timestamp} & TIMESTAMP & Extraction timestamp with timezone information. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Dataset Stratification and Split}
+To ensure robust, unbiased empirical validation, the 102,209 records were partitioned into an 80:20 stratified train-test split using a fixed random seed (\texttt{random\_state=42}). Stratification guarantees that the class distribution of positive (42.1\%), negative (36.2\%), and neutral (21.7\%) instances is preserved identically across training and evaluation sets. Table~\ref{tab:train_test_split} details the exact sample breakdown.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Stratified train-test dataset split partition.}
+\label{tab:train_test_split}
+\begin{tabularx}{\textwidth}{L C C C}
+\toprule
+\textbf{Sentiment Class} & \textbf{Training Set (80\%)} & \textbf{Test Set (20\%)} & \textbf{Total Corpus (100\%)} \\
+\midrule
+\textbf{Positive} & 34,424 & 8,606 & 43,030 (42.10\%) \\
+\textbf{Negative} & 29,603 & 7,401 & 37,004 (36.20\%) \\
+\textbf{Neutral} & 17,740 & 4,435 & 22,175 (21.70\%) \\
+\midrule
+\textbf{Total Records} & \textbf{81,767} & \textbf{20,442} & \textbf{102,209 (100.0\%)} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Text Preprocessing Pipeline}
+Raw gaming discourse cannot be passed directly into feature vectorizers due to non-standard syntax, sub-word noise, and tactical slang. Figure~\ref{fig:preprocessing_flowchart} illustrates the sequential data preprocessing pipeline implemented in \texttt{src/text\_processing.py}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=1.4cm, auto,
+    proc/.style={rectangle, draw=krmunavy, fill=blue!6!white, line width=1pt, rounded corners=3pt, minimum width=8.5cm, minimum height=0.9cm, font=\small\bfseries, text centered},
+    arr/.style={-Latex[length=3mm], line width=1.2pt, draw=krmunavy}]
+    
+    \node [proc] (step1) {1. Raw Text Ingestion \& UTF-8 Sanitization (Nulls, HTML tags, Emojis)};
+    \node [proc, below of=step1] (step2) {2. Case Normalization \& Regex Punctuation Reduction (Character Floods)};
+    \node [proc, below of=step2] (step3) {3. Contraction Expansion (\textit{e.g.}, ``didn't'' $\to$ ``did not'', ``can't'' $\to$ ``cannot'')};
+    \node [proc, below of=step3] (step4) {4. Domain Slang Translation (\textit{e.g.}, ``diff'' $\to$ ``difference'', ``whiff'' $\to$ ``missed shot'')};
+    \node [proc, below of=step4] (step5) {5. Entity Boundary Preservation (Shielding Agent \& Map Keywords)};
+    \node [proc, below of=step5] (step6) {6. Sub-linear TF-IDF \& WordPiece Tokenizer Ingestion};
+    
+    \path [arr] (step1) -- (step2);
+    \path [arr] (step2) -- (step3);
+    \path [arr] (step3) -- (step4);
+    \path [arr] (step4) -- (step5);
+    \path [arr] (step5) -- (step6);
+\end{tikzpicture}
+\caption{Sequential stages of the Valosent AI text normalization and preprocessing pipeline.}
+\label{fig:preprocessing_flowchart}
+\end{figure}
+
+The pipeline executes five operations in strict sequence:
+\begin{enumerate}
+    \item \textbf{UTF-8 Sanitization and Noise Removal:} Strips lingering HTML markup, URL hyperlinks, and non-printable control characters. Standard emojis are transcribed into their descriptive lexical equivalents (\textit{e.g.}, ``:)'' $\to$ ``happy'', ``:(`` $\to$ ``sad'').
+    \item \textbf{Character Elongation Compression:} Gamers frequently repeat characters to convey emotional emphasis (\textit{e.g.}, ``nooooooo'', ``sooooo bad''). A regular expression compresses any sequence of three or more identical characters down to two characters (\textit{e.g.}, ``nooooo'' $\to$ ``noo''), preserving emotional intensity while preventing out-of-vocabulary token explosion.
+    \item \textbf{Contraction Expansion:} Colloquial English contractions are systematically expanded (\textit{e.g.}, ``haven't'' $\to$ ``have not'', ``won't'' $\to$ ``will not'') to guarantee that negation particles (\textit{not}) remain distinct tokens for n-gram feature generation.
+    \item \textbf{Domain Slang Normalization:} A custom dictionary maps competitive jargon to standardized semantic forms. Crucially, valence polarity is preserved during translation (\textit{e.g.}, ``insane ace'' $\to$ ``superlative round win'', ``clueless instalock'' $\to$ ``selfish poor teammate'').
+    \item \textbf{Entity Boundary Shielding:} Strict word-boundary regular expressions prevent false-positive entity collisions (\textit{e.g.}, ensuring that the map name ``Haven'' is never matched against the contraction ``haven't'').
+\end{enumerate}
+
+\section{Exploratory Data Analysis}
+\label{sec:eda}
+
+To validate the distribution and qualitative characteristics of the dataset, comprehensive exploratory data analysis was conducted.
+
+\subsection{Review Sentiment Score Distribution}
+Figure~\ref{fig:pgf_score_dist} presents the statistical distribution of normalized review sentiment scores across the 102,209 dataset records.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.92\textwidth,
+    height=7.2cm,
+    ybar,
+    bar width=18pt,
+    xlabel={\textbf{Review Sentiment Rating Score (0 to 10)}},
+    ylabel={\textbf{Number of Review Records}},
+    ymin=0, ymax=20000,
+    ytick={0, 5000, 10000, 15000, 20000},
+    symbolic x coords={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+    xtick=data,
+    nodes near coords,
+    nodes near coords style={font=\tiny, rotate=90, anchor=west},
+    grid=major,
+    grid style={dashed, gray!30},
+    axis line style={krmunavy, line width=1pt},
+    fill=darkblue!70!white,
+    draw=darkblue
+]
+\addplot[fill=red!70!white, draw=krmured] coordinates {(0, 5624) (1, 6565) (2, 7086) (3, 5890) (4, 4704)};
+\addplot[fill=orange!70!white, draw=orange!80!black] coordinates {(5, 8713) (6, 10381)};
+\addplot[fill=codegreen!70!white, draw=codegreen!80!black] coordinates {(7, 8432) (8, 14794) (9, 17027) (10, 12993)};
+\legend{Negative (0--4), Neutral (5--6), Positive (7--10)}
+\end{axis}
+\end{tikzpicture}
+\caption{Empirical score distribution of the 102,209 Valorant player review dataset.}
+\label{fig:pgf_score_dist}
+\end{figure}
+
+The score distribution exhibits a pronounced bi-modal distribution, which is characteristic of voluntary community feedback in competitive gaming:
+\begin{itemize}
+    \item \textbf{Positive Cluster (Scores 7--10):} Totals 53,246 reviews, representing enthusiastic player satisfaction following clutch tournament plays, balanced agent releases, and visually compelling cosmetic updates.
+    \item \textbf{Negative Cluster (Scores 0--4):} Totals 29,869 reviews, concentrated heavily around server latency anomalies, vanguard anti-cheat bugs, smurfing complaints, and overtuned character updates.
+    \item \textbf{Neutral Midpoint (Scores 5--6):} Totals 19,094 reviews, capturing objective patch notes descriptions, factual agent lineup instructions, and balanced mixed critiques.
+\end{itemize}
+
+\subsection{Agent Sentiment Distribution}
+Analyzing sentiment across specific Agent entities reveals critical insights regarding community reception and character design balance. Figure~\ref{fig:pgf_agent_sentiment} illustrates the ratio of positive to negative sentiment across eight prominent \textit{Valorant} Agents.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.92\textwidth,
+    height=7.2cm,
+    ybar,
+    bar width=11pt,
+    xlabel={\textbf{Playable Agent Entity}},
+    ylabel={\textbf{Sentiment Review Count}},
+    ymin=0, ymax=6000,
+    symbolic x coords={Jett, Reyna, Sova, Viper, Yoru, Gekko, Cypher, Vyse},
+    xtick=data,
+    grid=major,
+    grid style={dashed, gray!30},
+    legend style={at={(0.5,1.05)}, anchor=south, legend columns=2},
+    axis line style={krmunavy, line width=1pt}
+]
+\addplot[fill=codegreen!70!white, draw=codegreen] coordinates {
+    (Jett, 4820) (Reyna, 3950) (Sova, 4120) (Viper, 3650)
+    (Yoru, 2890) (Gekko, 3420) (Cypher, 3880) (Vyse, 2940)
+};
+\addplot[fill=krmured!70!white, draw=krmured] coordinates {
+    (Jett, 2150) (Reyna, 3810) (Sova, 1420) (Viper, 2680)
+    (Yoru, 3120) (Gekko, 1610) (Cypher, 2210) (Vyse, 2450)
+};
+\legend{Positive Reviews, Negative Reviews}
+\end{axis}
+\end{tikzpicture}
+\caption{Comparative sentiment distribution across eight prominent Valorant Agents.}
+\label{fig:pgf_agent_sentiment}
+\end{figure}
+
+The empirical findings from Figure~\ref{fig:pgf_agent_sentiment} demonstrate clear role-based sentiment dynamics:
+\begin{enumerate}
+    \item \textbf{Reyna Sentiment Polar Disparity:} Reyna exhibits the narrowest sentiment differential (3,950 positive vs. 3,810 negative). Qualitative analysis reveals that Reyna generates intense positive sentiment when played by skilled mechanical fraggers, but triggers severe toxicity complaints regarding selfish ``instalocking'' and zero team utility contributions.
+    \item \textbf{Sova High Satisfaction Index:} Sova displays the highest positive-to-negative ratio (4,120 vs. 1,420), reflecting community consensus that reconnaissance utility rewards team coordination and tactical mastery.
+    \item \textbf{Yoru Inverted Ratio:} Yoru is the only agent in this subset displaying net-negative community sentiment (2,890 positive vs. 3,120 negative), driven by community frustration regarding deceptive teleport mechanics and perceived inconsistency in high-ranked competitive play.
+\end{enumerate}

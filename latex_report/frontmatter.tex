@@ -1,0 +1,213 @@
+% ==============================================================================
+% FRONTMATTER: TITLE PAGE, DECLARATION, CERTIFICATE, ABSTRACT, TOC, LOF, LOT
+% ==============================================================================
+
+% ------------------------------------------------------------------------------
+% 1. TITLE PAGE
+% ------------------------------------------------------------------------------
+\begin{titlepage}
+\begin{center}
+    \vspace*{0.2cm}
+    
+    {\Large \textbf{A MAJOR PROJECT REPORT}}\\[0.2cm]
+    {\normalsize \textbf{ON}}\\[0.5cm]
+    
+    \begin{tcolorbox}[colback=krmunavy!5!white,colframe=krmunavy,arc=3mm,width=0.98\textwidth,halign=center]
+        \vspace{0.2cm}
+        {\LARGE \bfseries \color{krmunavy} VALOSENT AI: MACHINE LEARNING \& LLM-POWERED VALORANT SENTIMENT ANALYSIS AND PERFORMANCE INTELLIGENCE PLATFORM}
+        \vspace{0.2cm}
+    \end{tcolorbox}
+    
+    \vspace{0.6cm}
+    {\normalsize \textit{Submitted in partial fulfillment of the requirements for the award of the degree of}}\\[0.3cm]
+    {\large \textbf{MASTER OF COMPUTER APPLICATIONS}}\\[0.15cm]
+    {\large \textbf{(ARTIFICIAL INTELLIGENCE \& MACHINE LEARNING)}}\\[0.2cm]
+    {\normalsize \textbf{SEMESTER -- III}}\\[0.6cm]
+
+    % University Crest / Emblem rendered in TikZ for 100% zero-dependency Overleaf compilation
+    \begin{tikzpicture}[scale=0.85]
+        \draw[krmunavy, line width=2pt, fill=blue!3!white] (0,0) circle (1.6cm);
+        \draw[krmured, line width=1.2pt] (0,0) circle (1.45cm);
+        \draw[krmunavy, line width=1.5pt] (0,0.4) circle (0.65cm);
+        % Torch / Flame
+        \fill[krmured] (0,0.45) .. controls (-0.2,0.85) and (-0.1,1.15) .. (0,1.4)
+                                .. controls (0.1,1.15) and (0.2,0.85) .. (0,0.45);
+        \fill[orange!90!white] (0,0.5) .. controls (-0.1,0.8) and (-0.05,1.0) .. (0,1.2)
+                                       .. controls (0.05,1.0) and (0.1,0.8) .. (0,0.5);
+        % Open Book
+        \draw[krmunavy, line width=1.4pt, fill=white] (-0.8,-0.4) .. controls (-0.4,-0.2) .. (0,-0.35)
+                                                      .. controls (0.4,-0.2) .. (0.8,-0.4) -- (0.8,-0.9)
+                                                      .. controls (0.4,-0.7) .. (0,-0.85)
+                                                      .. controls (-0.4,-0.7) .. (-0.8,-0.9) -- cycle;
+        \draw[krmunavy, line width=1pt] (0,-0.35) -- (0,-0.85);
+        \draw[krmunavy, line width=0.6pt] (-0.7,-0.55) -- (-0.1,-0.45);
+        \draw[krmunavy, line width=0.6pt] (-0.7,-0.72) -- (-0.1,-0.62);
+        \draw[krmunavy, line width=0.6pt] (0.1,-0.45) -- (0.7,-0.55);
+        \draw[krmunavy, line width=0.6pt] (0.1,-0.62) -- (0.7,-0.72);
+        % Text Banner
+        \node[font=\bfseries\tiny\color{krmunavy}] at (0,-1.15) {K.R. MANGALAM UNIVERSITY};
+        \node[font=\itshape\tiny\color{krmured}] at (0,-1.33) {THE COMPLETE WORLD OF EDUCATION};
+    \end{tikzpicture}
+    
+    \vspace{0.6cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \begin{flushleft} \large
+            \textbf{\color{krmunavy}Submitted by:}\\
+            \textbf{SK Imam}\\
+            Roll No: 2501940067\\
+            MCA (AI \& ML), Sem-III
+        \end{flushleft}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+        \begin{flushright} \large
+            \textbf{\color{krmunavy}Under the Guidance of:}\\
+            \textbf{Dr. [Internal Mentor Name]}\\
+            Assistant Professor\\
+            Department of CSE, SOET
+        \end{flushright}
+    \end{minipage}
+
+    \vfill
+    {\large \textbf{\color{krmunavy}DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING}}\\[0.15cm]
+    {\large \textbf{SCHOOL OF ENGINEERING AND TECHNOLOGY}}\\[0.15cm]
+    {\Large \textbf{K.R. MANGALAM UNIVERSITY}}\\[0.15cm]
+    {\normalsize Sohna Road, Gurugram, Haryana -- 122103, India}\\[0.3cm]
+    {\large \textbf{NOVEMBER 2026}}
+\end{center}
+\end{titlepage}
+
+% ------------------------------------------------------------------------------
+% 2. CANDIDATE'S DECLARATION
+% ------------------------------------------------------------------------------
+\newpage
+\thispagestyle{plain}
+\begin{center}
+    {\Large \bfseries \color{krmunavy} CANDIDATE'S DECLARATION}\\[1.0cm]
+\end{center}
+
+\noindent I hereby declare that the work presented in this Major Project Report entitled \textbf{``VALOSENT AI: Machine Learning \& LLM-Powered Valorant Sentiment Analysis and Performance Intelligence Platform''} submitted in partial fulfillment of the requirements for the award of the degree of \textbf{Master of Computer Applications (Artificial Intelligence \& Machine Learning)}, Department of Computer Science and Engineering, School of Engineering and Technology, K.R. Mangalam University, Gurugram, is an authentic record of my own research and engineering work carried out during Semester-III under the esteemed supervision of \textbf{Dr. [Internal Mentor Name]}, Assistant Professor, Department of Computer Science and Engineering.
+
+\vspace{0.8cm}
+\noindent The matter embodied in this report has not been submitted by me or any other student for the award of any other degree or diploma to this or any other university/institution.
+
+\vspace{2.5cm}
+\noindent
+\begin{minipage}[t]{0.5\textwidth}
+    \textbf{Date:} \today\\[0.2cm]
+    \textbf{Place:} Gurugram, India
+\end{minipage}
+\begin{minipage}[t]{0.48\textwidth}
+    \begin{flushright}
+        \vspace{-0.5cm}
+        \rule{6cm}{0.6pt}\\[0.2cm]
+        \textbf{SK Imam}\\
+        Roll No: 2501940067\\
+        MCA (AI \& ML), Semester-III\\
+        K.R. Mangalam University
+    \end{flushright}
+\end{minipage}
+
+% ------------------------------------------------------------------------------
+% 3. CERTIFICATE OF APPROVAL
+% ------------------------------------------------------------------------------
+\newpage
+\thispagestyle{plain}
+\begin{center}
+    {\Large \bfseries \color{krmunavy} CERTIFICATE OF APPROVAL}\\[1.0cm]
+\end{center}
+
+\noindent This is to certify that the Major Project Report entitled \textbf{``VALOSENT AI: Machine Learning \& LLM-Powered Valorant Sentiment Analysis and Performance Intelligence Platform''}, prepared and submitted by \textbf{SK Imam (Roll No: 2501940067)} in partial fulfillment of the requirements for the award of the degree of \textbf{Master of Computer Applications (AI \& ML)} from K.R. Mangalam University, Gurugram, is approved for submission.
+
+\vspace{0.6cm}
+\noindent To the best of my knowledge, the project work embodies original engineering, rigorous empirical evaluation, and thorough technical investigation carried out by the candidate under my internal supervision. The results presented in this report have been verified and found satisfactory.
+
+\vspace{3.0cm}
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+    \rule{6cm}{0.6pt}\\[0.2cm]
+    \textbf{Dr. [Internal Mentor Name]}\\
+    Project Supervisor\\
+    Assistant Professor\\
+    Department of CSE, SOET\\
+    K.R. Mangalam University
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+    \begin{flushright}
+        \rule{6cm}{0.6pt}\\[0.2cm]
+        \textbf{Prof. (Dr.) [HOD Name]}\\
+        Head of Department\\
+        Department of CSE, SOET\\
+        K.R. Mangalam University
+    \end{flushright}
+\end{minipage}
+
+\vspace{2.5cm}
+\noindent
+\begin{center}
+    \rule{7cm}{0.6pt}\\[0.2cm]
+    \textbf{External Examiner}\\
+    (Name \& Signature)
+\end{center}
+
+% ------------------------------------------------------------------------------
+% 4. ACKNOWLEDGMENTS
+% ------------------------------------------------------------------------------
+\newpage
+\thispagestyle{plain}
+\begin{center}
+    {\Large \bfseries \color{krmunavy} ACKNOWLEDGMENTS}\\[1.0cm]
+\end{center}
+
+\noindent First and foremost, I express my deepest sense of gratitude and respect to my project supervisor, \textbf{Dr. [Internal Mentor Name]}, Assistant Professor, Department of Computer Science and Engineering, for his invaluable guidance, continuous encouragement, constructive critique, and scholarly insights throughout the conception, mathematical modeling, and engineering execution of this major project.
+
+\vspace{0.5cm}
+\noindent I convey my sincere gratitude to \textbf{Prof. (Dr.) [HOD Name]}, Head of the Department of Computer Science and Engineering, and the faculty members of the School of Engineering and Technology, K.R. Mangalam University, for providing a state-of-the-art computational infrastructure, academic freedom, and continuous logistical encouragement.
+
+\vspace{0.5cm}
+\noindent I also express my earnest appreciation to the Honorable Vice Chancellor and the Dean of the School of Engineering and Technology, K.R. Mangalam University, for creating an inspiring academic and research ecosystem that empowers students to bridge theoretical machine learning concepts with large-scale production engineering.
+
+\vspace{0.5cm}
+\noindent Special thanks are due to my project peer and co-collaborator, \textbf{Arshit (Roll No: 2501940034)}, for stimulating discussions on transformer fine-tuning, latency optimization, and benchmarking protocols. Finally, I extend my heartfelt gratitude to my family and friends whose unconditional moral support, patience, and encouragement served as a continuous source of strength throughout my MCA studies.
+
+\vspace{1.8cm}
+\noindent
+\begin{flushright}
+    \textbf{SK Imam}\\
+    Roll No: 2501940067\\
+    MCA (AI \& ML), Semester-III\\
+    Department of CSE, SOET\\
+    K.R. Mangalam University, Gurugram
+\end{flushright}
+
+% ------------------------------------------------------------------------------
+% 5. ABSTRACT & KEYWORDS
+% ------------------------------------------------------------------------------
+\newpage
+\thispagestyle{plain}
+\begin{center}
+    {\Large \bfseries \color{krmunavy} ABSTRACT}\\[0.8cm]
+\end{center}
+
+\noindent In contemporary competitive electronic sports (esports), title-specific community feedback serves as a mission-critical barometer for patch balance, tactical meta evolution, and player retention. Riot Games' tactical first-person shooter \textit{Valorant} generates millions of conversational interactions monthly across Reddit, Steam Community forums, Discord servers, and Twitter. However, existing commercial esports analytics platforms (e.g., VLR.gg, Tracker.gg) concentrate exclusively on quantitative match telemetries (such as Kill/Death/Assist ratios and combat scores), completely omitting unstructured natural language player sentiment and subjective gameplay perception. Conversely, conventional off-the-shelf Natural Language Processing (NLP) sentiment classifiers fail catastrophically when applied to competitive gaming corpora due to highly specialized jargon, non-standard punctuation, syntactic gaming slang (\textit{e.g.}, ``diff'', ``clutch'', ``nerf'', ``lineup'', ``whiff'', ``instalock''), and sarcasm.
+
+\vspace{0.4cm}
+\noindent To resolve this dual failure mode, this project introduces \textbf{Valosent AI}, an enterprise-grade, publication-quality, multi-tier hybrid sentiment intelligence and tactical analytics platform engineered specifically for the \textit{Valorant} gaming ecosystem. The system synthesizes and sanitizes a stratified corpus of 102,209 authentic player reviews spanning 24 playable Agents and 13 competitive maps. The algorithmic architecture is structured as a tiered inference cascade: Tier-1 deploys a sub-linear TF-IDF vectorizer coupled with a calibrated Linear Support Vector Classifier (LinearSVC, 91.2\% test accuracy, 4.2\,ms inference latency); Tier-2 incorporates a Multinomial Naive Bayes probabilistic model (87.4\% accuracy, 1.8\,ms latency); Tier-3 leverages a fine-tuned \textit{DistilBERT-base-uncased} contextual transformer (93.8\% accuracy, 44.6\,ms latency); and Tier-4 integrates an explainable Large Language Model (LLM) reasoning fallback for complex idiomatic edge cases.
+
+\vspace{0.4cm}
+\noindent The production software implementation is built on Python 3.10+, Flask, PyTorch, Hugging Face Transformers, and Scikit-Learn, accompanied by a dual-persistence storage layer (local SQLite via SQLAlchemy ORM alongside remote PostgreSQL via Supabase) and zero-trust authentication via Google OAuth 2.0 and SMTP-backed Gmail OTP verification. Real-time Explainable AI (XAI) token saliency attribution highlights emerald-green positive and crimson negative lexical drivers directly inside an interactive cyberpunk-themed Tactical HUD. Comprehensive benchmark evaluations demonstrate that the hybrid ensemble achieves a peak macro F1-score of 94.6\% with negligible resource footprints (under 480\,MB RAM), proving its viability for live studio operations and competitive tournament intelligence.
+
+\vspace{0.8cm}
+\noindent \textbf{Keywords:} Sentiment Analysis, Valorant, Esports Analytics, DistilBERT, Support Vector Machines, Naive Bayes, Explainable AI (XAI), Large Language Models, Multi-Tier Inference Cascade.
+
+% ------------------------------------------------------------------------------
+% 6. TABLE OF CONTENTS, LIST OF FIGURES, LIST OF TABLES
+% ------------------------------------------------------------------------------
+\newpage
+\tableofcontents
+
+\newpage
+\listoffigures
+
+\newpage
+\listoftables
